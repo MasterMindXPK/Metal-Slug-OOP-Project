@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/Window.hpp>
+#include "Camera.h"
 
 using namespace sf;
 using namespace std;
@@ -12,10 +13,11 @@ int screen_x = 1600;
 int screen_y = 900;
 
 // prototypes
-float checkBlockCollision(char** lvl, float player_x, float player_y, int Pwidth, int Pheight, int cell_size, int grid_height);
-void draw_player(RenderWindow& window, Sprite& playerSprite, float player_x, float player_y);
-void display_level(RenderWindow& window, const int height, const int width, char** lvl, Sprite& wallSprite1, const int cell_size, Sprite& wallSprite2);
+float checkBlockCollision(char** lvl, float player_x, float player_y, int Pwidth, int Pheight, int cell_size, int grid_height, int grid_width);
+void draw_player(RenderWindow& window, Sprite& playerSprite, float player_x, float player_y, float camera_x);
+void display_level(RenderWindow& window, const int height, const int width, char** lvl, Sprite& wallSprite1, const int cell_size, Sprite& wallSprite2, float camera_x);
 void handleJump(float& velocityY, bool& onGround, bool& isJumping, const float jumpStrength);
+void load_level(char** lvl, int height, int width);
 
 int main()
 {
@@ -29,7 +31,7 @@ int main()
 
 	const int cell_size = 64;
 	const int height = 14;
-	const int width = 110;
+	const int width = 350;
 	const float jumpStrength = -18; // Initial jump velocity
 	const float gravity = 1;  // Gravity acceleration
 	bool isJumping = false;  // Track if jumping
@@ -52,38 +54,7 @@ int main()
 		lvl[i] = new char[width] {'\0'};
 	}
 
-	lvl[13][4] = 'u';
-	lvl[13][5] = 'u';
-	lvl[13][6] = 'u';
-	lvl[13][7] = 'u';
-	lvl[13][8] = 'u';
-
-	lvl[11][0] = 'g';
-	lvl[11][1] = 'g';
-	lvl[11][2] = 'g';
-	lvl[11][3] = 'g';
-	lvl[11][4] = 'g';
-	lvl[11][5] = 'g';
-	lvl[11][6] = 'g';
-	lvl[11][7] = 'g';
-	lvl[11][8] = 'g';
-	lvl[11][9] = 'g';
-	lvl[11][10] = 'g';
-
-	lvl[11][11] = 'g';
-	lvl[11][12] = 'g';
-	lvl[11][13] = 'g';
-	lvl[11][14] = 'g';
-	lvl[11][15] = 'g';
-	lvl[11][16] = 'g';
-	lvl[11][17] = 'g';
-	lvl[11][18] = 'g';
-	lvl[11][19] = 'g';
-	lvl[11][20] = 'g';
-	lvl[11][21] = 'g';
-	lvl[11][22] = 'g';
-	lvl[11][23] = 'g';
-	lvl[11][24] = 'g';
+	load_level(lvl, height, width);
 
 
 
@@ -122,8 +93,24 @@ int main()
 	playerSprite.setTexture(playerTex);
 	playerSprite.setScale(scale_x, scale_y);
 
+	Texture backgroundTex;
+	Sprite backgroundSprite;
+	backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg");
+	backgroundSprite.setTexture(backgroundTex);
+	unsigned int bgWidth = backgroundTex.getSize().x;
+	unsigned int bgHeight = backgroundTex.getSize().y;
+	if (bgWidth > 0 && bgHeight > 0)
+	{
+		backgroundSprite.setScale(
+			static_cast<float>(screen_x) / bgWidth,
+			static_cast<float>(screen_y) / bgHeight);
+	}
+
 	////////////////////////////////////////////////////////
 
+	Camera camera(screen_x, screen_y);
+	const float cameraMinX = 100.0f;
+	const float cameraMaxX = screen_x - 100.0f;
 	Event ev;
 	while (window.isOpen())
 	{
@@ -161,7 +148,8 @@ int main()
 
 		player_x += velocityX;
 		if (player_x < 0) player_x = 0;
-		if (player_x + Pwidth > screen_x) player_x = screen_x - Pwidth;
+		camera.update(player_x, cameraMinX, cameraMaxX);
+		float camera_x = camera.getXOffset();
 		window.clear();
 
 		if (Keyboard::isKeyPressed(Keyboard::Up) && (onGround)) {
@@ -177,15 +165,16 @@ int main()
 		if (velocityY > terminal_Velocity) velocityY = terminal_Velocity;
 		player_y += velocityY;
 
-		float ground_level = checkBlockCollision(lvl, player_x, player_y, Pwidth, Pheight, cell_size, height);
+		float ground_level = checkBlockCollision(lvl, player_x, player_y, Pwidth, Pheight, cell_size, height, width);
 		if (player_y >= ground_level) {
 			player_y = ground_level;
 			velocityY = 0;
 			onGround = true;
 		}
 
-		display_level(window, height, width, lvl, wallSprite1, cell_size, undestructWall_sprite);
-		draw_player(window, playerSprite, player_x, player_y);
+		window.draw(backgroundSprite);
+		display_level(window, height, width, lvl, wallSprite1, cell_size, undestructWall_sprite, camera_x);
+		draw_player(window, playerSprite, player_x, player_y, camera_x);
 
 		window.display();
 	}
@@ -194,7 +183,7 @@ int main()
 }
 
 
-float checkBlockCollision(char** lvl, float player_x, float player_y, int Pwidth, int Pheight, int cell_size, int grid_height)
+float checkBlockCollision(char** lvl, float player_x, float player_y, int Pwidth, int Pheight, int cell_size, int grid_height, int grid_width)
 {
 
 	float player_bottom = player_y + Pheight;
@@ -206,7 +195,7 @@ float checkBlockCollision(char** lvl, float player_x, float player_y, int Pwidth
 	{
 		for (int col = left_col; col <= right_col; col++)
 		{
-			if (col >= 0 && col < 110 && row < grid_height && lvl[row][col] == 'g') return row * cell_size - Pheight;
+			if (col >= 0 && col < grid_width && row < grid_height && lvl[row][col] == 'g') return row * cell_size - Pheight;
 
 		}
 	}
@@ -218,13 +207,13 @@ float checkBlockCollision(char** lvl, float player_x, float player_y, int Pwidth
 
 
 
-void draw_player(RenderWindow& window, Sprite& playerSprite, float player_x, float player_y)
+void draw_player(RenderWindow& window, Sprite& playerSprite, float player_x, float player_y, float camera_x)
 {
-	playerSprite.setPosition(player_x, player_y);
+	playerSprite.setPosition(player_x - camera_x, player_y);
 	window.draw(playerSprite);
 }
 
-void display_level(RenderWindow& window, const int height, const int width, char** lvl, Sprite& wallSprite1, const int cell_size, Sprite& wallSprite2)
+void display_level(RenderWindow& window, const int height, const int width, char** lvl, Sprite& wallSprite1, const int cell_size, Sprite& wallSprite2, float camera_x)
 {
 	for (int i = 0; i < height; i += 1)
 	{
@@ -232,15 +221,59 @@ void display_level(RenderWindow& window, const int height, const int width, char
 		{
 			if (lvl[i][j] == 'g')
 			{
-				wallSprite1.setPosition(j * cell_size, i * cell_size);
+				wallSprite1.setPosition(j * cell_size - camera_x, i * cell_size);
 				window.draw(wallSprite1);
 			}
 			if (lvl[i][j] == 'u')
 			{
-				wallSprite2.setPosition(j * cell_size, i * cell_size);
+				wallSprite2.setPosition(j * cell_size - camera_x, i * cell_size);
 				window.draw(wallSprite2);
 			}
 
+		}
+	}
+}
+
+void load_level(char** lvl, int height, int width)
+{
+	for (int row = 0; row < height; row += 1)
+	{
+		for (int col = 0; col < width; col += 1)
+		{
+			lvl[row][col] = '\0';
+		}
+	}
+
+	int groundRow = height - 3;
+	int minGroundRow = height - 7;
+	int maxGroundRow = height - 2;
+
+	const int segmentCount = 7;
+	const int segmentLength[segmentCount] = { 30, 6, 6, 4, 4, 4, 10 };
+	const int segmentSlope[segmentCount] = { 0, -1, 1, 1, 0, -1, 0 };
+	int segmentIndex = 0;
+	int segmentProgress = 0;
+
+	for (int col = 0; col < width; col += 1)
+	{
+		groundRow += segmentSlope[segmentIndex];
+		segmentProgress += 1;
+		if (segmentProgress >= segmentLength[segmentIndex])
+		{
+			segmentProgress = 0;
+			segmentIndex += 1;
+			if (segmentIndex >= segmentCount)
+			{
+				segmentIndex = 0;
+			}
+		}
+
+		if (groundRow < minGroundRow) groundRow = minGroundRow;
+		if (groundRow > maxGroundRow) groundRow = maxGroundRow;
+
+		for (int row = groundRow; row < height; row += 1)
+		{
+			lvl[row][col] = 'g';
 		}
 	}
 }

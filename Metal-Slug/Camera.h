@@ -10,8 +10,13 @@ public:
     Camera(int w, int h) : xOffset(0), scrollSpeed(2.0f), 
                            screenWidth(w), screenHeight(h) {}
     
-    void update() {
-        xOffset += scrollSpeed;
+    void update(float playerWorldX, float minScreenX, float maxScreenX) {
+        float screenX = playerWorldX - xOffset;
+        if (screenX > maxScreenX) {
+            xOffset = playerWorldX - maxScreenX;
+        } else if (screenX < minScreenX) {
+            xOffset = playerWorldX - minScreenX;
+        }
     }
     
     float getXOffset() const { return xOffset; }
