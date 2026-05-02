@@ -41,10 +41,10 @@ int main()
 	float terminal_Velocity = 20;
 	bool onGround = false;
 	char** lvl = NULL;
-	float max_speed = 5;
+	float max_speed = 20;
 	float velocityX = 0;
 	float velocityY = 0;
-	float acceleration = 0.5;
+	float acceleration =0.5;
 	lvl = new char* [height];
 	float player_x = 320;
 	float player_y = 610;
@@ -131,12 +131,12 @@ int main()
 			window.close();
 		}
 
-		if (Keyboard::isKeyPressed(Keyboard::Right))
+		if (Keyboard::isKeyPressed(Keyboard::D))
 		{
 			velocityX += acceleration;
 			if (velocityX > max_speed) velocityX = max_speed;
 		}
-		else if (Keyboard::isKeyPressed(Keyboard::Left))
+		else if (Keyboard::isKeyPressed(Keyboard::A))
 		{
 			velocityX -= acceleration;
 			if (velocityX < -max_speed) velocityX = -max_speed;
@@ -152,7 +152,7 @@ int main()
 		float camera_x = camera.getXOffset();
 		window.clear();
 
-		if (Keyboard::isKeyPressed(Keyboard::Up) && (onGround)) {
+		if (Keyboard::isKeyPressed(Keyboard::W) && (onGround)) {
 			velocityY = jumpStrength;
 			onGround = false;
 			isJumping = true;
