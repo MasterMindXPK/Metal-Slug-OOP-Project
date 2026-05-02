@@ -1,37 +1,36 @@
 
 class Camera {
 private:
-    float xOffset;
-    float scrollSpeed;
+    float cameraOffset;//how much the player has moved in world
     int screenWidth;
     int screenHeight;
     
 public:
-    Camera(int w, int h) : xOffset(0), scrollSpeed(2.0f), 
-                           screenWidth(w), screenHeight(h) {}
+    Camera(int w, int h) : cameraOffset(0), screenWidth(w), screenHeight(h) {}
     
     void update(float playerWorldX, float minScreenX, float maxScreenX) {
-        float screenX = playerWorldX - xOffset;
-        if (screenX > maxScreenX) {
-            xOffset = playerWorldX - maxScreenX;
-        } else if (screenX < minScreenX) {
-            xOffset = playerWorldX - minScreenX;
-        }
+        float screenX = playerWorldX - cameraOffset;// converting the worldCoordinates to screen Coordinates
+
+ 
+        if (screenX > maxScreenX) cameraOffset = playerWorldX - maxScreenX;
+        else if (screenX < minScreenX) cameraOffset = playerWorldX - minScreenX;
     }
     
-    float getXOffset() const { return xOffset; }
+    float getCameraOffset() const { return cameraOffset; }
     
-    int worldToScreenX(float worldX) {
-        return (int)(worldX - xOffset);
+    int worldToScreenX(float worldX) { return (int)(worldX - cameraOffset); }
+    int getScreenWidth() const {
+        return screenWidth;
+    }
+    int getScreenHeight() const {
+        return screenHeight;
     }
     
-    int worldToScreenY(float worldY) {
-        return (int)worldY; 
-    }
+    int worldToScreenY(float worldY) { return (int)worldY; }
     
     bool isVisible(float worldX, float width) {
-        float screenX = worldX - xOffset;
-        return screenX + width > 0 && screenX < screenWidth;
+        float screenX = worldX - cameraOffset;
+        return ( (screenX + width > 0) && (screenX < screenWidth) );
     }
 };
 
