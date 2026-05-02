@@ -221,10 +221,13 @@ float horizontalCollision(char** lvl, float player_x, float player_y, float velo
 	int bottomRow = (int)((player_y + Pheight - 1) / cell_size);
 	if (topRow < 0) topRow = 0;
 	if (bottomRow >= grid_height) bottomRow = grid_height - 1;
-
 	if (velocityX > 0)
 	{
 		int rightCol = (int)((newX + Pwidth - 1) / cell_size);
+
+
+
+
 		for (int row = topRow; row <= bottomRow; row += 1)
 		{
 			if (rightCol >= 0 && rightCol < grid_width && lvl[row][rightCol] == 'g')

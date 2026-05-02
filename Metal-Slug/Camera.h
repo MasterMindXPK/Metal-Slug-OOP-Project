@@ -19,7 +19,12 @@ public:
     float getCameraOffset() const { return cameraOffset; }
     
     int worldToScreenX(float worldX) { return (int)(worldX - cameraOffset); }
-    
+    int getScreenWidth() const {
+        return screenWidth;
+    }
+    int getScreenHeight() const {
+        return screenHeight;
+    }
     
     int worldToScreenY(float worldY) { return (int)worldY; }
     
