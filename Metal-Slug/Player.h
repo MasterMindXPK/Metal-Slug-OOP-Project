@@ -72,7 +72,7 @@ public:
 
     float getWorldX() const { return worldX; }
     float getWorldY() const { return worldY; }
-    float getScreenX(const Camera& cam) const { return worldX - cam.getXOffset(); }
+    float getScreenX(const Camera& cam) const { return worldX - cam.getCameraOffset(); }
 	PlayerState getState() const { return state; }
 	void setState(PlayerState newState) { state = newState; }
 };

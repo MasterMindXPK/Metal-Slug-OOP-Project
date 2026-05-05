@@ -95,8 +95,9 @@ int main()
 	Player Eri;
 
 
-
+	sf::Sprite playerSprite;
 	sf::Texture playerTextures[4];
+
 	playerTextures[0].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
 	playerTextures[1].loadFromFile("Data/Characters/Tarma Roving/Tarma.png");
 	playerTextures[2].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
@@ -141,9 +142,10 @@ int main()
 			{
 				if (currentPlayer < 3) {
 					currentPlayer = (currentPlayer + 1);
+
 				}
 				else currentPlayer = 0;
-
+				cout << "z";
 				playerSprite.setTexture(playerTextures[currentPlayer]);
 			}
 		}
