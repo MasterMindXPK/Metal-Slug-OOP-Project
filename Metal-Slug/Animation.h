@@ -1,4 +1,6 @@
-#pragma once
+#ifndef ANIMATION_H
+#define ANIMATION_H
+
 #include <SFML/Graphics.hpp>
 using namespace sf;
 

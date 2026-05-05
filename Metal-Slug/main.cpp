@@ -5,6 +5,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Window.hpp>
 #include "Camera.h"
+#include"Player.h"
 
 using namespace sf;
 using namespace std;
@@ -87,11 +88,22 @@ int main()
 	int Pheight = raw_img_y * scale_y ;	// 94
 	int Pwidth = raw_img_x * scale_x;	// 119
 
-	Texture playerTex;
-	Sprite playerSprite;
+	
+	Player marcoRossi;
+	Player tarma;
+	Player Fio;
+	Player Eri;
 
-	playerTex.loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
-	playerSprite.setTexture(playerTex);
+
+
+	sf::Texture playerTextures[4];
+	playerTextures[0].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
+	playerTextures[1].loadFromFile("Data/Characters/Tarma Roving/Tarma.png");
+	playerTextures[2].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
+	playerTextures[3].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
+
+	int currentPlayer = 0;
+	playerSprite.setTexture(playerTextures[currentPlayer]);
 	playerSprite.setScale(scale_x, scale_y);
 
 	Texture backgroundTex;
@@ -125,11 +137,16 @@ int main()
 				window.close();
 			}
 
-			if (ev.type == Event::KeyPressed)
+			if (ev.type == sf::Event::KeyPressed && ev.key.code == sf::Keyboard::Z)
 			{
+				if (currentPlayer < 3) {
+					currentPlayer = (currentPlayer + 1);
+				}
+				else currentPlayer = 0;
+
+				playerSprite.setTexture(playerTextures[currentPlayer]);
 			}
 		}
-
 		if (Keyboard::isKeyPressed(Keyboard::Escape))
 		{
 			window.close();

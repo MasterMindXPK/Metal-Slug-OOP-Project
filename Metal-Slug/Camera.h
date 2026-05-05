@@ -1,3 +1,5 @@
+#ifndef CAMERA_H
+#define CAMERA_H
 
 class Camera {
 private:
@@ -33,4 +35,6 @@ public:
         return ( (screenX + width > 0) && (screenX < screenWidth) );
     }
 };
+
+#endif
 
