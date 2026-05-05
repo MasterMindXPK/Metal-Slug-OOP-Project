@@ -1,5 +1,5 @@
-#ifndef DAMAGEBALE_H
-#define DAMAGEBALE_H
+#ifndef DAMAGEABLE_H
+#define DAMAGEABLE_H
 
 class Damageable {
 protected:
