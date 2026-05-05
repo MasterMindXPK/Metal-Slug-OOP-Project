@@ -2,18 +2,18 @@
 #define ENTITY_H
 
 #include <SFML/Graphics.hpp>
-#include "Damagebale.h"
+#include "Damageable.h"
 #include "Utility.h"
 using namespace sf;
 
-class Entity : public Damageable {
+class Entity{
 protected:
 	Position position;
 	bool isActive;
 	Sprite sprite;
 
 public:
-	Entity() : Damageable(100), position{ 0.0f, 0.0f }, isActive(true) {}
+	Entity() :position{ 0.0f, 0.0f }, isActive(true) {}
 	virtual ~Entity() {}
 
 	virtual void update(float deltaTime) = 0;

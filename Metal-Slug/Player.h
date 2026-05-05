@@ -2,7 +2,7 @@
 #define PLAYER_H
 
 #include "Camera.h"
-#include "Entity.h"
+#include "Damageable.h"
 
 enum class PlayerState {
 	Normal,
@@ -11,8 +11,8 @@ enum class PlayerState {
 	Undead
 };
 
-class Player: public Entity {
-private:
+class Player: public Damageable {
+protected:
     float worldX; 
     float worldY;
 	const int height;

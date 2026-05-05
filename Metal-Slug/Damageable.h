@@ -1,7 +1,8 @@
 #ifndef DAMAGEABLE_H
 #define DAMAGEABLE_H
+#include "Entity.h"
 
-class Damageable {
+class Damageable: public Entity {
 protected:
 	int hp;
 
