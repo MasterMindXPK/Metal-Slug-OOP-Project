@@ -4,7 +4,7 @@
 #include "Camera.h"
 #include "Level.h"
 #include "Player.h"
-
+#include "Level.h"
 using namespace sf;
 
 class Game {
@@ -29,8 +29,9 @@ private:
     const float camMinX = 300.0f;
 
 
-    bool loadAssets() {
-        if (!backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) return false;
+    void loadAssets() {
+        //if (!backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) return false;
+        backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg");
         backgroundSprite.setTexture(backgroundTex);
         unsigned int bgWidth = backgroundTex.getSize().x;
         unsigned int bgHeight = backgroundTex.getSize().y;
@@ -40,22 +41,21 @@ private:
                 static_cast<float>(screenW) / bgWidth,
                 static_cast<float>(screenH) / bgHeight);
         }
+
         playerTextures[0].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
         playerTextures[1].loadFromFile("Data/Characters/Tarma Roving/Tarma.png");
         playerTextures[2].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
         playerTextures[3].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
-        playerSprite.setTexture(playerTextures[0]);
-        playerSprite.setScale(scaleX, scaleY);
 
+        player.setTexture(playerTextures[currentPlayer]);
+        player.setScale(scaleX, scaleY);
 
-        playerSprite.setTexture(playerTextures[currentPlayer]);
-        playerSprite.setScale(scaleX, scaleY);
-
-        if (!level.loadTextures("Data/blocks/grass_block_side.png",
-            "Data/blocks/stone.png")) return false;
-        return true;
+       // if (!level.loadTextures("Data/blocks/grass_block_side.png",
+           // "Data/blocks/stone.png")) return false;
+      //  return true;
+        level.loadTextures("Data/blocks/grass_block_side.png",
+            "Data/blocks/stone.png");
     }
-
     void handleEvents() {
         Event ev;
         while (window.pollEvent(ev)) {
@@ -63,31 +63,24 @@ private:
 
             if (ev.type == Event::KeyPressed && ev.key.code == Keyboard::Z) {
                 currentPlayer = (currentPlayer + 1) % NUM_CHARACTERS;
-                playerSprite.setTexture(playerTextures[currentPlayer]);
+                player.setTexture(playerTextures[currentPlayer]);  // Set on player
             }
         }
         if (Keyboard::isKeyPressed(Keyboard::Escape)) window.close();
     }
 
     void update() {
+        player.update(0.016f);  
         player.handleInput();
 
-        // Horizontal
         player.applyHorizontalMovement();
-        float corrX = level.resolveHorizontalCollision(
-            player.getPosition().x, player.getPosition().y,
-            player.getVelocityX(),
-            player.getSpriteWidth(), player.getSpriteHeight());
+        float corrX = level.resolveHorizontalCollision(player.getPosition().x, player.getPosition().y, player.getSpriteWidth(), player.getSpriteHeight());
         player.resolveHorizontal(corrX);
 
-        camera.update(player.getPosition().x, camMinX,
-            screenW - camMinX - player.getSpriteWidth());
+        camera.update(player.getPosition().x, camMinX, screenW - camMinX - player.getSpriteWidth());
 
-        // Vertical
         player.applyGravity();
-        float groundY = level.resolveVerticalCollision(
-            player.getPosition().x, player.getPosition().y,
-            player.getSpriteWidth(), player.getSpriteHeight());
+        float groundY = level.resolveVerticalCollision(player.getPosition().x, player.getPosition().y, player.getVelocityX(), player.getSpriteWidth(), player.getSpriteHeight());
         player.resolveVertical(groundY);
     }
 
@@ -96,10 +89,7 @@ private:
         window.draw(backgroundSprite);
         level.drawLevel(window, camera.getCameraOffset());
 
-        playerSprite.setPosition(
-            player.getPosition().x - camera.getCameraOffset(),
-            player.getPosition().y);
-        window.draw(playerSprite);
+        player.draw(window);
 
         window.display();
     }
@@ -116,7 +106,7 @@ public:
     }
 
     void run() {
-        if (!loadAssets()) return;
+        loadAssets();
         level.generateLevel();
 
         while (window.isOpen()) {

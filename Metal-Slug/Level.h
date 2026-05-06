@@ -11,7 +11,7 @@ private:
 	const int screenWidth;
 	char** lvl;
 	
-
+public:
 	void allocateLvl() {
 		lvl = new char* [height];
 		for(int i = 0; i < height; i += 1)
@@ -28,8 +28,7 @@ private:
 	Texture stoneTex;
 	Sprite grassSpr;
 	Sprite stoneSpr;
-	
-public:
+
 	Level(int height, int width, int cell_size, int scrHeight, int scrWidth): height(height), width(width), cell_size(cell_size),lvl(nullptr), screenHeight(scrHeight), screenWidth(scrWidth) {
 		allocateLvl();
 	}
@@ -73,7 +72,7 @@ public:
 		}
 	}
 
-	float verticalCollision(float player_x, float player_y, int Pwidth, int Pheight)
+	float resolveHorizontalCollision(float player_x, float player_y, int Pwidth, int Pheight)
 	{
 
 		float player_bottom = player_y + Pheight;
@@ -91,7 +90,7 @@ public:
 		return screenHeight - Pheight;
 	}
 
-	float horizontalCollision(float player_x, float player_y, float velocityX, int Pwidth, int Pheight)
+	float resolveVerticalCollision(float player_x, float player_y, float velocityX, int Pwidth, int Pheight)
 	{
 		float newX = player_x + velocityX;
 		if (velocityX == 0)
@@ -134,7 +133,7 @@ public:
 
 		return newX;
 	}
-	bool loadTextures(const std::string& grassPath, const std::string& stonePath) {
+	bool loadTextures(const char* grassPath, const char* stonePath) {
 		if (!grassTex.loadFromFile(grassPath)) return false;
 		if (!stoneTex.loadFromFile(stonePath))  return false;
 		grassSpr.setTexture(grassTex);
