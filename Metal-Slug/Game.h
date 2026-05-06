@@ -20,7 +20,6 @@ private:
     static const int NUM_CHARACTERS = 4;
     int currentPlayer;
     Texture playerTextures[NUM_CHARACTERS];
-    Sprite playerSprite;
 
     const int screenW = 1600;
     const int screenH = 900;
@@ -28,9 +27,8 @@ private:
     const float scaleY = 0.2f;
     const float camMinX = 300.0f;
 
-
-    void loadAssets() {
-         (backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) ;
+    bool loadAssets() {
+        if (!backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) return false;
         backgroundSprite.setTexture(backgroundTex);
         unsigned int bgWidth = backgroundTex.getSize().x;
         unsigned int bgHeight = backgroundTex.getSize().y;
@@ -40,54 +38,66 @@ private:
                 static_cast<float>(screenW) / bgWidth,
                 static_cast<float>(screenH) / bgHeight);
         }
-
-        playerTextures[0].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
+        /*playerTextures[0].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
         playerTextures[1].loadFromFile("Data/Characters/Tarma Roving/Tarma.png");
         playerTextures[2].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
         playerTextures[3].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
+        player.setSpriteTexture(playerTextures[0]);
+        player.setSpriteScale(scaleX, scaleY);
 
         player.setTexture(playerTextures[currentPlayer]);
         player.setScale(scaleX, scaleY);
 
-         (level.loadTextures("Data/blocks/grass_block_side.png",
-            "Data/blocks/stone.png")) ;
-        
+        player.setSpriteTexture(playerTextures[currentPlayer]);
+        player.setSpriteScale(scaleX, scaleY);*/
+
+        if (!level.loadTextures("Data/blocks/grass_block_side.png",
+            "Data/blocks/stone.png")) return false;
+        return true;
     }
     void handleEvents() {
         Event ev;
         while (window.pollEvent(ev)) {
             if (ev.type == Event::Closed) window.close();
 
-            if (ev.type == Event::KeyPressed && ev.key.code == Keyboard::Z) {
+            if (Keyboard::isKeyPressed(Keyboard::Z)) {
                 currentPlayer = (currentPlayer + 1) % NUM_CHARACTERS;
-                player.setTexture(playerTextures[currentPlayer]);  // Set on player
+                player.setSpriteTexture(playerTextures[currentPlayer]);
             }
         }
         if (Keyboard::isKeyPressed(Keyboard::Escape)) window.close();
     }
 
     void update() {
-        player.update(0.016f);
-        player.handleInput();
-
-        player.applyHorizontalMovement();
-        float corrX = level.resolveHorizontalCollision(player.getPosition().x, player.getPosition().y, player.getSpriteWidth(), player.getSpriteHeight());
-        player.resolveHorizontal(corrX);
-
-        camera.update(player.getPosition().x, camMinX, screenW - camMinX - player.getSpriteWidth());
-
         player.applyGravity();
-        float groundY = level.resolveVerticalCollision(player.getPosition().x, player.getPosition().y, player.getVelocityX(), player.getSpriteWidth(), player.getSpriteHeight());
-        player.resolveVertical(groundY);
+        player.handleInput();
+        
+        
+
+        //Collsiions
+        float corrX = level.horizontalCollision(player.getPosition().x, player.getPosition().y, player.getVelocityX(),player.getWidth(), player.getHeight());
+        player.applyHorizontalCollision(corrX);
+
+        float groundY = level.verticalCollision(player.getPosition().x, player.getPosition().y,
+            player.getWidth(), player.getHeight());
+        player.applyVerticalCollision(groundY);
+
+
+        camera.update(player.getPosition().x, camMinX,
+            screenW - camMinX - player.getWidth());
+
+        Position newPosition = { player.getPosition().x + player.getVelocityX(),player.getPosition().y + player.getVelocityY() };
+        player.setPosition(newPosition);
+        player.setSprPos(player.getPosition().x - camera.getCameraOffset(), player.getPosition().y);
+        
     }
+   
 
     void render() {
         window.clear();
         window.draw(backgroundSprite);
         level.drawLevel(window, camera.getCameraOffset());
-
-        player.draw(window);
-
+        window.draw(player.getSprite());
         window.display();
     }
 

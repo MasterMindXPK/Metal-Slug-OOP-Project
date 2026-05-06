@@ -10,11 +10,11 @@ private:
 	const int screenHeight;
 	const int screenWidth;
 	char** lvl;
+	
 
-public:
 	void allocateLvl() {
 		lvl = new char* [height];
-		for (int i = 0; i < height; i += 1)
+		for(int i = 0; i < height; i++)
 		{
 			lvl[i] = new char[width];
 			for (int j = 0; j < width; j++)
@@ -28,8 +28,9 @@ public:
 	Texture stoneTex;
 	Sprite grassSpr;
 	Sprite stoneSpr;
-
-	Level(int height, int width, int cell_size, int scrHeight, int scrWidth) : height(height), width(width), cell_size(cell_size), lvl(nullptr), screenHeight(scrHeight), screenWidth(scrWidth) {
+	
+public:
+	Level(int height, int width, int cell_size, int scrHeight, int scrWidth): height(height), width(width), cell_size(cell_size),lvl(nullptr), screenHeight(scrHeight), screenWidth(scrWidth) {
 		allocateLvl();
 	}
 
@@ -72,7 +73,7 @@ public:
 		}
 	}
 
-	float resolveHorizontalCollision(float player_x, float player_y, int Pwidth, int Pheight)
+	float verticalCollision(float player_x, float player_y, int Pwidth, int Pheight)
 	{
 
 		float player_bottom = player_y + Pheight;
@@ -90,9 +91,9 @@ public:
 		return screenHeight - Pheight;
 	}
 
-	float resolveVerticalCollision(float player_x, float player_y, float velocityX, int Pwidth, int Pheight)
+	float horizontalCollision(float player_x, float player_y, float velocityX, int Pwidth, int Pheight)
 	{
-		float newX = player_x + velocityX;
+		float newX = player_x;
 		if (velocityX == 0)
 		{
 			return newX;
@@ -133,12 +134,12 @@ public:
 
 		return newX;
 	}
-	void loadTextures(const char* grassPath, const char* stonePath) {
-		(grassTex.loadFromFile(grassPath)) ;
-		(stoneTex.loadFromFile(stonePath)) ;
+	bool loadTextures(const char* grassPath, const char* stonePath) {
+		if (!grassTex.loadFromFile(grassPath)) return false;
+		if (!stoneTex.loadFromFile(stonePath))  return false;
 		grassSpr.setTexture(grassTex);
 		stoneSpr.setTexture(stoneTex);
-		
+		return true;
 	}
 	void drawLevel(RenderWindow& window, float camera_x)
 	{

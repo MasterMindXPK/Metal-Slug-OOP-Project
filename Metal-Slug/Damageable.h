@@ -1,5 +1,4 @@
-#ifndef DAMAGEABLE_H
-#define DAMAGEABLE_H
+#pragma once
 #include "Entity.h"
 
 class Damageable : public Entity {
@@ -21,5 +20,3 @@ public:
 		return hp;
 	}
 };
-
-#endif

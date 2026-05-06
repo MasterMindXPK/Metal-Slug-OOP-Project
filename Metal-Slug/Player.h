@@ -1,8 +1,8 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#pragma once
 
 #include "Camera.h"
 #include "Damageable.h"
+using namespace sf;
 
 enum class PlayerState {
 	Normal,
@@ -13,13 +13,11 @@ enum class PlayerState {
 
 class Player : public Damageable {
 protected:
-	float worldX;
-	float worldY;
 	const int height;
 	const int width;
-	const float jumpStrength;
-	const float gravity;
-	bool isJumping;
+	const float jumpStrength; // Initial jump velocity
+	const float gravity;  // Gravity acceleration
+	bool isJumping; // Track if jumping
 	bool isMoving;
 	bool facing_left;
 	bool facing_right;
@@ -33,7 +31,9 @@ protected:
 	PlayerState state;
 
 public:
-	Player() : worldX(100), worldY(300), max_speed(20.0f), acceleration(0.5), terminal_velocity(20), gravity(1.0f), height(39), width(24), jumpStrength(-18), state(PlayerState::Normal) {
+	Player() :max_speed(10.0f), acceleration(0.2), terminal_velocity(20), gravity(1.0f), height(94), width(118.6), jumpStrength(-18), state(PlayerState::Normal) {
+		position.x = 60;
+		position.y = 22;
 		isJumping = false;
 		isMoving = false;
 		facing_left = false;
@@ -43,18 +43,40 @@ public:
 		hitBox.width = width;
 		hitBox.left = 7;
 		hitBox.top = 1138;
+		tex.loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
+		sprite.setTexture(tex);
+		sprite.setScale(0.2f, 0.2f);
+
 	}
 
-	void update(float deltaTime) override {
-		// Sync position struct with worldX/worldY
-		position.x = worldX;
-		position.y = worldY;
-		sprite.setPosition(worldX, worldY);
+	void handleInput() {
+		if (Keyboard::isKeyPressed(Keyboard::D))
+		{
+			velocityX += acceleration;
+			if (velocityX > max_speed) velocityX = max_speed;
+		}
+		else if (Keyboard::isKeyPressed(Keyboard::A))
+		{
+			velocityX -= acceleration;
+			if (velocityX < -max_speed) velocityX = -max_speed;
+		}
+		else
+		{
+			velocityX = 0;
+		}
+		if (Keyboard::isKeyPressed(Keyboard::W) && onGround) {
+			velocityY = jumpStrength; 
+			onGround = false;
+			isJumping = true;
+		}
+
 	}
 
 	void draw(RenderWindow& window) override {
 		window.draw(sprite);
 	}
+
+	
 
 	void takeDamage(int amount) override {
 		hp -= amount;
@@ -65,72 +87,50 @@ public:
 	}
 
 	void moveX(float disX) {
-		worldX += disX;
+		position.x += disX;
 	}
 
 	void moveY(float disY) {
-		worldY += disY;
-	}
-
-	float getSpriteWidth() const {
-		return width;
-	}
-	float getWorldX() const { return worldX; }
-	float getWorldY() const { return worldY; }
-	float getScreenX(const Camera& cam) const { return worldX - cam.getCameraOffset(); }
-	float getSpriteHeight() const { return height; }
-	float getVelocityX() const { return velocityX; }
-	float getVelocityY() const { return velocityY; }
-	PlayerState getState() const { return state; }
-	void setState(PlayerState newState) { state = newState; }
-	void setTexture(const sf::Texture& tex) {
-		sprite.setTexture(tex);
+		position.y += disY;
 	}
 
 	void applyGravity() {
-		velocityY += gravity;
-		if (velocityY > terminal_velocity) velocityY = terminal_velocity;
-	}
-
-	void applyHorizontalMovement() {
-		worldX += velocityX;
-	}
-	void setScale(float scaleX, float scaleY) {
-		sprite.setScale(scaleX, scaleY);
-	}
-	void resolveHorizontal(float corr) {
-		worldX = corr;
-	}
-
-	void resolveVertical(float corr) {
-		worldY = corr;
-		velocityY = 0;
-		onGround = true;
-	}
-
-	void handleInput() {
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-			velocityX += acceleration;
-			if (velocityX > max_speed) velocityX = max_speed;
-			facing_right = true;
-			facing_left = false;
+		if (!onGround) {
+			velocityY += gravity;
+			if (velocityY > terminal_velocity) velocityY = terminal_velocity;
 		}
-		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-			velocityX -= acceleration;
-			if (velocityX < -max_speed) velocityX = -max_speed;
-			facing_left = true;
-			facing_right = false;
+		
+	}
+
+	void applyHorizontalCollision(float corrected) {
+		/*if (corrected != position.x)	velocityX = 0;*/
+
+		position.x = corrected;
+	}
+
+	void applyVerticalCollision(float corrected) {
+		if (corrected < position.y) {  // collision pushed player up
+			position.y = corrected;
+			velocityY = 0;
+			onGround = true;
 		}
 		else {
-			velocityX = 0;
-		}
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && onGround) {
-			velocityY = jumpStrength;
-			onGround = false;
-			isJumping = true;
+			onGround = false;  // no ground beneath
 		}
 	}
+	void setSprPos(float x, float y) {
+		sprite.setPosition(x, y);
+	}
+	void setSpriteScale(float x, float y) { sprite.setScale(x,y); }
+	void setSpriteTexture(Texture t) { sprite.setTexture(t); }
+	Sprite getSprite() const { return sprite; }
+	float getVelocityX() const { return velocityX; }
+	float getVelocityY() const { return velocityY; }
+	float getHeight() const { return height; }
+	float getWidth() const { return width; }
+    float getScreenX(const Camera& cam) const { return position.x - cam.getCameraOffset(); }
+	PlayerState getState() const { return state; }
+	void setState(PlayerState newState) { state = newState; }
 };
 
-#endif
+
