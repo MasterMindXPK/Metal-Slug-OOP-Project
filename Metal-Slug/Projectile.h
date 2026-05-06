@@ -11,7 +11,8 @@ private:
 
 public:
 	Projectile(const sf::Vector2f& startPosition, const sf::Vector2f& projectileVelocity, int projectileDamage)
-		: position(startPosition), velocity(projectileVelocity), damage(projectileDamage) {}
+		: position(startPosition), velocity(projectileVelocity), damage(projectileDamage) {
+	}
 
 	void update(float deltaTime) {
 		position.x += velocity.x * deltaTime;

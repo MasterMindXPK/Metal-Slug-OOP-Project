@@ -30,8 +30,7 @@ private:
 
 
     void loadAssets() {
-        //if (!backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) return false;
-        backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg");
+         (backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) ;
         backgroundSprite.setTexture(backgroundTex);
         unsigned int bgWidth = backgroundTex.getSize().x;
         unsigned int bgHeight = backgroundTex.getSize().y;
@@ -50,11 +49,9 @@ private:
         player.setTexture(playerTextures[currentPlayer]);
         player.setScale(scaleX, scaleY);
 
-       // if (!level.loadTextures("Data/blocks/grass_block_side.png",
-           // "Data/blocks/stone.png")) return false;
-      //  return true;
-        level.loadTextures("Data/blocks/grass_block_side.png",
-            "Data/blocks/stone.png");
+         (level.loadTextures("Data/blocks/grass_block_side.png",
+            "Data/blocks/stone.png")) ;
+        
     }
     void handleEvents() {
         Event ev;
@@ -70,7 +67,7 @@ private:
     }
 
     void update() {
-        player.update(0.016f);  
+        player.update(0.016f);
         player.handleInput();
 
         player.applyHorizontalMovement();
@@ -106,7 +103,7 @@ public:
     }
 
     void run() {
-        loadAssets();
+        (loadAssets()) ;
         level.generateLevel();
 
         while (window.isOpen()) {

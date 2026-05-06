@@ -2,7 +2,7 @@
 #define DAMAGEABLE_H
 #include "Entity.h"
 
-class Damageable: public Entity {
+class Damageable : public Entity {
 protected:
 	int hp;
 

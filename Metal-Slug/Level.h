@@ -10,11 +10,11 @@ private:
 	const int screenHeight;
 	const int screenWidth;
 	char** lvl;
-	
+
 public:
 	void allocateLvl() {
 		lvl = new char* [height];
-		for(int i = 0; i < height; i += 1)
+		for (int i = 0; i < height; i += 1)
 		{
 			lvl[i] = new char[width];
 			for (int j = 0; j < width; j++)
@@ -29,7 +29,7 @@ public:
 	Sprite grassSpr;
 	Sprite stoneSpr;
 
-	Level(int height, int width, int cell_size, int scrHeight, int scrWidth): height(height), width(width), cell_size(cell_size),lvl(nullptr), screenHeight(scrHeight), screenWidth(scrWidth) {
+	Level(int height, int width, int cell_size, int scrHeight, int scrWidth) : height(height), width(width), cell_size(cell_size), lvl(nullptr), screenHeight(scrHeight), screenWidth(scrWidth) {
 		allocateLvl();
 	}
 
@@ -133,12 +133,12 @@ public:
 
 		return newX;
 	}
-	bool loadTextures(const char* grassPath, const char* stonePath) {
-		if (!grassTex.loadFromFile(grassPath)) return false;
-		if (!stoneTex.loadFromFile(stonePath))  return false;
+	void loadTextures(const char* grassPath, const char* stonePath) {
+		(grassTex.loadFromFile(grassPath)) ;
+		(stoneTex.loadFromFile(stonePath)) ;
 		grassSpr.setTexture(grassTex);
 		stoneSpr.setTexture(stoneTex);
-		return true;
+		
 	}
 	void drawLevel(RenderWindow& window, float camera_x)
 	{
