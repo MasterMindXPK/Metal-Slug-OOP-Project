@@ -72,12 +72,12 @@ public:
 			for (int row = groundRow; row < height; row += 1) lvl[row][col] = 'g';
 		}
 	}
-	float verticalCollision(float player_x, float player_y, float Pwidth, float Pheight, float velocityY)
+	float verticalCollision(float Soldier_x, float Soldier_y, float Pwidth, float Pheight, float velocityY)
 	{
-		float player_bottom = player_y + velocityY + Pheight;
-		int check_row = (int)(player_bottom / cell_size);
-		int left_col = (int)(player_x / cell_size);
-		int right_col = (int)((player_x + Pwidth) / cell_size);
+		float Soldier_bottom = Soldier_y + velocityY + Pheight;
+		int check_row = (int)(Soldier_bottom / cell_size);
+		int left_col = (int)(Soldier_x / cell_size);
+		int right_col = (int)((Soldier_x + Pwidth) / cell_size);
 
 		for (int row = check_row; row < height; row++)
 		{
@@ -90,16 +90,16 @@ public:
 		return screenHeight - Pheight;
 	}
 
-	float horizontalCollision(float player_x, float player_y, float velocityX, float Pwidth, int Pheight)
+	float horizontalCollision(float Soldier_x, float Soldier_y, float velocityX, float Pwidth, float Pheight)
 	{
-		float newX = player_x+velocityX;
+		float newX = Soldier_x+velocityX;
 		if (velocityX == 0)
 		{
 			return newX;
 		}
 
-		int topRow = (int)(player_y / cell_size);
-		int bottomRow = (int)((player_y + Pheight - 1) / cell_size);
+		int topRow = (int)(Soldier_y / cell_size);
+		int bottomRow = (int)((Soldier_y + Pheight - 1) / cell_size);
 		if (topRow < 0) topRow = 0;
 		if (bottomRow >= height) bottomRow = height - 1;
 		if (velocityX > 0)

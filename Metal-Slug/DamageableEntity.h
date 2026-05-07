@@ -1,13 +1,13 @@
 #pragma once
 #include "Entity.h"
 
-class Damageable : public Entity {
+class DamageableEntity : public Entity {
 protected:
 	int hp;
 
 public:
-	Damageable(int startingHp = 100) : hp(startingHp) {}
-	virtual ~Damageable() {}
+	DamageableEntity(int startingHp = 100) : hp(startingHp) {}
+	virtual ~DamageableEntity() {}
 
 	virtual void takeDamage(int amount) {
 		hp -= amount;

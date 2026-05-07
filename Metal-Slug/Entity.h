@@ -1,8 +1,5 @@
-#ifndef ENTITY_H
-#define ENTITY_H
-
+#pragma once
 #include <SFML/Graphics.hpp>
-#include "Damageable.h"
 #include "Utility.h"
 using namespace sf;
 
@@ -34,5 +31,3 @@ public:
     }
     
 };
-
-#endif

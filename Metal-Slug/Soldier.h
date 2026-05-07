@@ -1,17 +1,18 @@
 #pragma once
 
 #include "Camera.h"
-#include "Damageable.h"
+#include "DamageableEntity.h"
+#include "Utility.h"
 using namespace sf;
 
-enum class PlayerState {
+enum class SoldierState {
 	Normal,
 	Damaged,
 	Mummy,
 	Undead
 };
 
-class Player : public Damageable {
+class Soldier : public DamageableEntity {
 protected:
 	const float height;
 	const float width;
@@ -28,10 +29,10 @@ protected:
 	float velocityY = 0;
 	float acceleration;
 	IntRect hitBox;
-	PlayerState state;
+	SoldierState state;
 
 public:
-	Player() :max_speed(10.0f), acceleration(0.2), terminal_velocity(20), gravity(1.0f), height(94), width(118.6), jumpStrength(-18), state(PlayerState::Normal) {
+	Soldier() :max_speed(10.0f), acceleration(0.2), terminal_velocity(20), gravity(1.0f), height(0.2f * 438), width(0.2f * 347), jumpStrength(-18), state(SoldierState::Normal) {
 		position.x = 60;
 		position.y = 22;
 		isJumping = false;
@@ -43,9 +44,7 @@ public:
 		hitBox.width = width;
 		hitBox.left = 7;
 		hitBox.top = 1138;
-		tex.loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
-		sprite.setTexture(tex);
-		sprite.setScale(0.2f, 0.2f);
+		
 
 	}
 
@@ -83,7 +82,7 @@ public:
 		if (hp < 0) {
 			hp = 0;
 		}
-		state = PlayerState::Damaged;
+		state = SoldierState::Damaged;
 	}
 
 	void moveX(float disX) {
@@ -102,10 +101,29 @@ public:
 		
 	}
 
+	bool setTextureFromFile(const char* path) {
+		if (!tex.loadFromFile(path)) return false;
+		setSprite(tex);
+
+		Position texSize;
+		texSize.x = tex.getSize().x;
+		texSize.y = tex.getSize().y;
+
+		float scaleX = width / static_cast<float>(texSize.x);
+		float scaleY = height / static_cast<float>(texSize.y);
+		sprite.setScale(scaleX, scaleY);
+
+
+		// Update hitbox to match drawn size
+		hitBox.width = static_cast<int>(width);
+		hitBox.height = static_cast<int>(height);
+		return true;
+	}
 	void applyHorizontalCollision(float corrected) {
 		/*if (corrected != position.x)	velocityX = 0;*/
 
 		position.x = corrected;
+		velocityX = 0;
 	}
 
 	void applyVerticalCollision(float corrected, float nextY) {
@@ -123,15 +141,14 @@ public:
 		sprite.setPosition(x, y);
 	}
 	void setSpriteScale(float x, float y) { sprite.setScale(x,y); }
-	void setSpriteTexture(Texture t) { sprite.setTexture(t); }
 	Sprite getSprite() const { return sprite; }
 	float getVelocityX() const { return velocityX; }
 	float getVelocityY() const { return velocityY; }
 	float getHeight() const { return height; }
 	float getWidth() const { return width; }
     float getScreenX(const Camera& cam) const { return position.x - cam.getCameraOffset(); }
-	PlayerState getState() const { return state; }
-	void setState(PlayerState newState) { state = newState; }
+	SoldierState getState() const { return state; }
+	void setState(SoldierState newState) { state = newState; }
 };
 
 

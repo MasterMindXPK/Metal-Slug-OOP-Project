@@ -2,19 +2,19 @@
 
 class Camera {
 private:
-    float cameraOffset;//how much the player has moved in world
+    float cameraOffset;//how much the Soldier has moved in world
     int screenWidth;
     int screenHeight;
 
 public:
     Camera(int w, int h) : cameraOffset(0), screenWidth(w), screenHeight(h) {}
 
-    void update(float playerWorldX, float minScreenX, float maxScreenX) {
-        float screenX = playerWorldX - cameraOffset;// converting the worldCoordinates to screen Coordinates
+    void update(float SoldierWorldX, float minScreenX, float maxScreenX) {
+        float screenX = SoldierWorldX - cameraOffset;// converting the worldCoordinates to screen Coordinates
 
 
-        if (screenX > maxScreenX) cameraOffset = playerWorldX - maxScreenX;
-        else if (screenX < minScreenX) cameraOffset = playerWorldX - minScreenX;
+        if (screenX > maxScreenX) cameraOffset = SoldierWorldX - maxScreenX;
+        else if (screenX < minScreenX) cameraOffset = SoldierWorldX - minScreenX;
     }
 
     float getCameraOffset() const { return cameraOffset; }

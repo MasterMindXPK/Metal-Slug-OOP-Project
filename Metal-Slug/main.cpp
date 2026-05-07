@@ -6,7 +6,7 @@
 #include <SFML/Window.hpp>
 #include "Game.h"
 #include "Camera.h"
-#include"Player.h"
+#include"Soldier.h"
 
 using namespace sf;
 using namespace std;

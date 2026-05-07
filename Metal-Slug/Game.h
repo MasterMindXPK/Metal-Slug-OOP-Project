@@ -3,8 +3,8 @@
 #include <SFML/Graphics.hpp>
 #include "Camera.h"
 #include "Level.h"
-#include "Player.h"
-#include "Level.h"
+#include "Soldier.h"
+#include "PlayerSoldier.h"
 using namespace sf;
 
 class Game {
@@ -12,19 +12,19 @@ private:
     RenderWindow window;
     Camera camera;
     Level level;
-    Player player;
+    Soldier Soldier;
 
     Texture backgroundTex;
     Sprite backgroundSprite;
 
     static const int NUM_CHARACTERS = 4;
-    int currentPlayer;
-    Texture playerTextures[NUM_CHARACTERS];
+    int currentSoldierIndex;
+    PlayerSoldier* soldiers[NUM_CHARACTERS];
+    PlayerSoldier* currentPlayer;
 
     const int screenW = 1600;
     const int screenH = 900;
-    const float scaleX = 0.2f;
-    const float scaleY = 0.2f;
+  
     const float camMinX = 300.0f;
 
     bool loadAssets() {
@@ -38,19 +38,8 @@ private:
                 static_cast<float>(screenW) / bgWidth,
                 static_cast<float>(screenH) / bgHeight);
         }
-        /*playerTextures[0].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
-        playerTextures[1].loadFromFile("Data/Characters/Tarma Roving/Tarma.png");
-        playerTextures[2].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
-        playerTextures[3].loadFromFile("Data/Characters/Marco Rossi/MarcoRossi_Player1.png");
-        player.setSpriteTexture(playerTextures[0]);
-        player.setSpriteScale(scaleX, scaleY);
-
-        player.setTexture(playerTextures[currentPlayer]);
-        player.setScale(scaleX, scaleY);
-
-        player.setSpriteTexture(playerTextures[currentPlayer]);
-        player.setSpriteScale(scaleX, scaleY);*/
-
+        
+        
         if (!level.loadTextures("Data/blocks/grass_block_side.png",
             "Data/blocks/stone.png")) return false;
         return true;
@@ -60,67 +49,86 @@ private:
         while (window.pollEvent(ev)) {
             if (ev.type == Event::Closed) window.close();
 
-            if (Keyboard::isKeyPressed(Keyboard::Z)) {
-                currentPlayer = (currentPlayer + 1) % NUM_CHARACTERS;
-                player.setSpriteTexture(playerTextures[currentPlayer]);
+            if (ev.type == Event::KeyPressed) {
+                if (ev.key.code == Keyboard::Z) {
+                    currentSoldierIndex = (currentSoldierIndex + 1) % NUM_CHARACTERS;
+                    currentPlayer = soldiers[currentSoldierIndex];
+					Soldier.setTextureFromFile(currentPlayer->getTexturePath());
+                }
+                else if (ev.key.code == Keyboard::Escape) {
+                    window.close();
+                }
             }
         }
-        if (Keyboard::isKeyPressed(Keyboard::Escape)) window.close();
     }
 
     void update() {
-        player.applyGravity();
-        player.handleInput();
-        float nextX = player.getPosition().x + player.getVelocityX();
+        Soldier.applyGravity();
+        Soldier.handleInput();
+        float nextX = Soldier.getPosition().x + Soldier.getVelocityX();
         float correctedX = level.horizontalCollision(
-            player.getPosition().x,
-            player.getPosition().y,
-            player.getVelocityX(),
-            player.getWidth(),
-            player.getHeight()
+            Soldier.getPosition().x,
+            Soldier.getPosition().y,
+            Soldier.getVelocityX(),
+            Soldier.getWidth(),
+            Soldier.getHeight()
         );
 
-        if (correctedX != player.getPosition().x + player.getVelocityX()) {
-            player.applyHorizontalCollision(correctedX);
+        if (correctedX != Soldier.getPosition().x + Soldier.getVelocityX()) {
+            Soldier.applyHorizontalCollision(correctedX);
         }
         else {
-            player.setPosition({ correctedX, player.getPosition().y });
+            Soldier.setPosition({ correctedX, Soldier.getPosition().y });
         }
 
-        float nextY = player.getPosition().y + player.getVelocityY();
+        float nextY = Soldier.getPosition().y + Soldier.getVelocityY();
         float groundY = level.verticalCollision(
-            player.getPosition().x,
-            player.getPosition().y,
-            player.getWidth(),
-            player.getHeight(),
-            player.getVelocityY()
+            Soldier.getPosition().x,
+            Soldier.getPosition().y,
+            Soldier.getWidth(),
+            Soldier.getHeight(),
+            Soldier.getVelocityY()
         );
-        player.applyVerticalCollision(groundY, nextY);
+        Soldier.applyVerticalCollision(groundY, nextY);
 
-        camera.update(player.getPosition().x, camMinX,
-            screenW - camMinX - player.getWidth());
+        camera.update(Soldier.getPosition().x, camMinX,
+            screenW - camMinX - Soldier.getWidth());
 
-        player.setSprPos(player.getPosition().x - camera.getCameraOffset(),
-            player.getPosition().y);
+        Soldier.setSprPos(Soldier.getPosition().x - camera.getCameraOffset(),
+            Soldier.getPosition().y);
     }
 
     void render() {
         window.clear();
         window.draw(backgroundSprite);
         level.drawLevel(window, camera.getCameraOffset());
-        window.draw(player.getSprite());
+        window.draw(Soldier.getSprite());
         window.display();
     }
 
 public:
-    Game()
-        : window(VideoMode(1600, 900), "Metal Slug", Style::Close),
+    Game(): window(VideoMode(1600, 900), "Metal Slug", Style::Close),
         camera(1600, 900),
         level(14, 350, 64, screenH, screenW),
-        currentPlayer(0)
+        currentSoldierIndex(0)
     {
         window.setVerticalSyncEnabled(true);
         window.setFramerateLimit(60);
+
+        soldiers[0] = new Marco();
+        soldiers[1] = new Tarma();
+        soldiers[2] = new Eri();
+        soldiers[3] = new Fio();
+
+        currentPlayer = soldiers[currentSoldierIndex];
+        Soldier.setTextureFromFile(currentPlayer->getTexturePath());
+    }
+
+    ~Game() {
+        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+            delete soldiers[i];
+            soldiers[i] = nullptr;
+        }
     }
 
     void run() {
