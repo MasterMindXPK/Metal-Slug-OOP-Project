@@ -71,27 +71,38 @@ private:
     void update() {
         player.applyGravity();
         player.handleInput();
-        
-        
+        float nextX = player.getPosition().x + player.getVelocityX();
+        float correctedX = level.horizontalCollision(
+            player.getPosition().x,
+            player.getPosition().y,
+            player.getVelocityX(),
+            player.getWidth(),
+            player.getHeight()
+        );
 
-        //Collsiions
-        float corrX = level.horizontalCollision(player.getPosition().x, player.getPosition().y, player.getVelocityX(),player.getWidth(), player.getHeight());
-        player.applyHorizontalCollision(corrX);
+        if (correctedX != player.getPosition().x + player.getVelocityX()) {
+            player.applyHorizontalCollision(correctedX);
+        }
+        else {
+            player.setPosition({ correctedX, player.getPosition().y });
+        }
 
-        float groundY = level.verticalCollision(player.getPosition().x, player.getPosition().y,
-            player.getWidth(), player.getHeight());
-        player.applyVerticalCollision(groundY);
-
+        float nextY = player.getPosition().y + player.getVelocityY();
+        float groundY = level.verticalCollision(
+            player.getPosition().x,
+            player.getPosition().y,
+            player.getWidth(),
+            player.getHeight(),
+            player.getVelocityY()
+        );
+        player.applyVerticalCollision(groundY, nextY);
 
         camera.update(player.getPosition().x, camMinX,
             screenW - camMinX - player.getWidth());
 
-        Position newPosition = { player.getPosition().x + player.getVelocityX(),player.getPosition().y + player.getVelocityY() };
-        player.setPosition(newPosition);
-        player.setSprPos(player.getPosition().x - camera.getCameraOffset(), player.getPosition().y);
-        
+        player.setSprPos(player.getPosition().x - camera.getCameraOffset(),
+            player.getPosition().y);
     }
-   
 
     void render() {
         window.clear();

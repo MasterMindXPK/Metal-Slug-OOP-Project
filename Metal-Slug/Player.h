@@ -13,8 +13,8 @@ enum class PlayerState {
 
 class Player : public Damageable {
 protected:
-	const int height;
-	const int width;
+	const float height;
+	const float width;
 	const float jumpStrength; // Initial jump velocity
 	const float gravity;  // Gravity acceleration
 	bool isJumping; // Track if jumping
@@ -108,14 +108,15 @@ public:
 		position.x = corrected;
 	}
 
-	void applyVerticalCollision(float corrected) {
-		if (corrected < position.y) {  // collision pushed player up
+	void applyVerticalCollision(float corrected, float nextY) {
+		if (corrected < nextY) {  
 			position.y = corrected;
 			velocityY = 0;
 			onGround = true;
 		}
 		else {
-			onGround = false;  // no ground beneath
+			position.y = nextY;   
+			onGround = false;
 		}
 	}
 	void setSprPos(float x, float y) {

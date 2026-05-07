@@ -72,11 +72,9 @@ public:
 			for (int row = groundRow; row < height; row += 1) lvl[row][col] = 'g';
 		}
 	}
-
-	float verticalCollision(float player_x, float player_y, int Pwidth, int Pheight)
+	float verticalCollision(float player_x, float player_y, float Pwidth, float Pheight, float velocityY)
 	{
-
-		float player_bottom = player_y + Pheight;
+		float player_bottom = player_y + velocityY + Pheight;
 		int check_row = (int)(player_bottom / cell_size);
 		int left_col = (int)(player_x / cell_size);
 		int right_col = (int)((player_x + Pwidth) / cell_size);
@@ -85,15 +83,16 @@ public:
 		{
 			for (int col = left_col; col <= right_col; col++)
 			{
-				if (col >= 0 && col < width && row < height && lvl[row][col] == 'g') return row * cell_size - Pheight;
+				if (col >= 0 && col < width && row < height && lvl[row][col] == 'g')
+					return row * cell_size - Pheight;
 			}
 		}
 		return screenHeight - Pheight;
 	}
 
-	float horizontalCollision(float player_x, float player_y, float velocityX, int Pwidth, int Pheight)
+	float horizontalCollision(float player_x, float player_y, float velocityX, float Pwidth, int Pheight)
 	{
-		float newX = player_x;
+		float newX = player_x+velocityX;
 		if (velocityX == 0)
 		{
 			return newX;
