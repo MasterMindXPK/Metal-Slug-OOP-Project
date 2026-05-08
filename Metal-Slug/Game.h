@@ -170,9 +170,10 @@ public:
     }
 
     void update() {
-        if (state == GameState::Menu) return;
-        bool inWater = survival.isWaterAt(Soldier.getPosition().x + Soldier.getWidth() * 0.5f, Soldier.getPosition().y + Soldier.getHeight() * 0.5f);
+        bool inWater;
         float gravityStrength, speedMultiplier;
+        if (state == GameState::Menu) return;
+        inWater = survival.isWaterAt(Soldier.getPosition().x + Soldier.getWidth() * 0.5f, Soldier.getPosition().y + Soldier.getHeight() * 0.5f);
         if (inWater) {
             gravityStrength = 1.3;
             speedMultiplier = 0.65;
@@ -184,8 +185,8 @@ public:
        
         
         if (state == GameState::Menu) return;
-        bool inWater = survival.isWaterAt(Soldier.getPosition().x + Soldier.getWidth() * 0.5f,  Soldier.getPosition().y + Soldier.getHeight() * 0.5f);
-        float gravityStrength, speedMultiplier;
+        inWater = survival.isWaterAt(Soldier.getPosition().x + Soldier.getWidth() * 0.5f,  Soldier.getPosition().y + Soldier.getHeight() * 0.5f);
+        
         if (inWater) {
             gravityStrength = 1.3;
             speedMultiplier = 0.65;
@@ -199,7 +200,7 @@ public:
         Soldier.handleInput(speedMultiplier);
         float nextX = Soldier.getPosition().x + Soldier.getVelocityX();
         float correctedX = survival.horizontalCollision(Soldier.getPosition().x, Soldier.getPosition().y, Soldier.getVelocityX(), Soldier.getWidth(), Soldier.getHeight());
-        pistol.updateBullets(0.016);
+        
         if (correctedX != Soldier.getPosition().x + Soldier.getVelocityX()) Soldier.applyHorizontalCollision(correctedX);
         
         else Soldier.setPosition({ correctedX, Soldier.getPosition().y });
@@ -231,7 +232,7 @@ public:
             soldiers[i]->getActiveWeapon()->updateBullets(0.016);
         }*/
         for (int i = 0; i < NUM_CHARACTERS; ++i) {
-            soldiers[i]->getActiveWeapon()->updateBullets(0.016f, level, screenW, screenH);
+            soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
         }
 		currentPlayer->updateSpecialMove();
     }

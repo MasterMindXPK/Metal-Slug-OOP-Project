@@ -20,7 +20,7 @@ public:
 	virtual void attackDirect(Position startPos, float dirX) = 0;
 	virtual void update(float dt) { fireCooldown += dt; }
 	virtual void drawBullets(RenderWindow& window, float cameraOffset){ }
-	virtual void updateBullets(float dt, Level& level, int screenW, int screenH) = 0;
+	virtual void updateBullets(float dt, Survival& level, int screenW, int screenH) = 0;
 	virtual void setProjectileTexture(Texture& tex) {}
 
 };
@@ -52,7 +52,7 @@ public:
 	//	for (int i = 0; i < totalAmmo; i++) bullets[i].update(dt);
 	//}
 
-	void updateBullets(float dt, Level& level, int screenW, int screenH) override {
+	void updateBullets(float dt, Survival& level, int screenW, int screenH) override {
 		Weapon::update(dt);
 		for (int i = 0; i < totalAmmo; i++) {
 			if (!bullets[i].isActive()) continue;
@@ -63,14 +63,14 @@ public:
 			float bw = bullets[i].getWidth();
 			float bh = bullets[i].getHeight();
 
-			// Out of screen bounds — deactivate
+			// Out of screen bounds
 			if (pos.x + bw < 0 || pos.x > screenW * 10 ||
 				pos.y < 0 || pos.y + bh > screenH) {
 				bullets[i].deactivate();
 				continue;
 			}
 
-			// Level collision — deactivate on tile hit
+			// Level collision
 			if (level.isSolid(pos.x, pos.y, bw, bh)) {
 				bullets[i].deactivate();
 			}

@@ -262,4 +262,23 @@ public:
 	}
 	int getWidth() const { return width; }
 	int getCellSize() const { return cell_size; }
+
+	//========================================================
+	bool isSolid(float x, float y, float w, float h) const {
+		int left = (int)(x / cell_size);
+		int right = (int)((x + w - 1) / cell_size);
+		int top = (int)(y / cell_size);
+		int bottom = (int)((y + h - 1) / cell_size);
+
+		for (int row = top; row <= bottom; row++) {
+			for (int col = left; col <= right; col++) {
+				if (row >= 0 && row < height &&
+					col >= 0 && col < width &&
+					lvl[row][col] == 'g') {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 };
