@@ -39,7 +39,9 @@ private:
     bool loadAssets() {
         if (!backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) return false;
         if (!bulletTex.loadFromFile("Data/Items/bullet.png")) return false;
-        bulletSp.setTexture(bulletTex);
+        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+            soldiers[i]->getActiveWeapon()->setProjectileTexture(bulletTex);
+        }
         backgroundSprite.setTexture(backgroundTex);
         unsigned int bgWidth = backgroundTex.getSize().x;
         unsigned int bgHeight = backgroundTex.getSize().y;
@@ -53,7 +55,7 @@ private:
         
         if (!level.loadTextures("Data/blocks/grass_block_side.png",
             "Data/blocks/stone.png")) return false;
-        pistol.setProjectileTexture(bulletTex);
+        //pistol.setProjectileTexture(bulletTex);
         
         return true;
     }
@@ -62,30 +64,30 @@ private:
         while (window.pollEvent(ev)) {
             if (ev.type == Event::Closed) window.close();
 
-            if (Keyboard::isKeyPressed(Keyboard::Z)) {
+            if (ev.type == Event::KeyPressed && ev.key.code == Keyboard::Z) {
                     currentSoldierIndex = (currentSoldierIndex + 1) % NUM_CHARACTERS;
                     currentPlayer = soldiers[currentSoldierIndex];
 					Soldier.setTextureFromFile(currentPlayer->getTexturePath());
+                    
                 }
                 else if (ev.key.code == Keyboard::Escape) {
                     window.close();
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::F)) {
+                    currentPlayer->specialMove();
                 }
                 else if (Keyboard::isKeyPressed(Keyboard::Space)) {
                     Position spawn;
                     spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
                     spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-                    pistol.attack(spawn, 1.0f, currentPlayer->getFireRateMultiplier());
-
-                    
+				    currentPlayer->shoot(spawn);
                 }
-            if(Keyboard::isKeyPressed(Keyboard::F)) {
-				currentPlayer->specialMove();
-			}
-            
+                
         }
     }
 
     void update() {
+       
         Soldier.applyGravity();
         Soldier.handleInput();
         float nextX = Soldier.getPosition().x + Soldier.getVelocityX();
@@ -97,7 +99,6 @@ private:
             Soldier.getHeight()
 
         );
-        pistol.updateBullets(0.016);
         if (correctedX != Soldier.getPosition().x + Soldier.getVelocityX()) {
             Soldier.applyHorizontalCollision(correctedX);
         }
@@ -120,6 +121,13 @@ private:
 
         Soldier.setSprPos(Soldier.getPosition().x - camera.getCameraOffset(),
             Soldier.getPosition().y);
+        /*for (int i = 0; i < NUM_CHARACTERS; ++i) {
+            soldiers[i]->getActiveWeapon()->updateBullets(0.016);
+        }*/
+        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+            soldiers[i]->getActiveWeapon()->updateBullets(0.016f, level, screenW, screenH);
+        }
+		currentPlayer->updateSpecialMove();
     }
 
     void render() {
@@ -127,7 +135,10 @@ private:
         window.draw(backgroundSprite);
         level.drawLevel(window, camera.getCameraOffset());
         window.draw(Soldier.getSprite());
-        pistol.drawBullets(window, camera.getCameraOffset());
+        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+            soldiers[i]->getActiveWeapon()->drawBullets(window, camera.getCameraOffset());
+        }
+
         window.display();
     }
 
@@ -140,10 +151,10 @@ public:
         window.setVerticalSyncEnabled(true);
         window.setFramerateLimit(60);
 
-        soldiers[0] = new Marco();
-        soldiers[1] = new Tarma();
-        soldiers[2] = new Eri();
-        soldiers[3] = new Fio();
+        soldiers[0] = new Marco(pistol.createWeapon());
+        soldiers[1] = new Tarma(pistol.createWeapon());
+        soldiers[2] = new Eri(pistol.createWeapon());
+        soldiers[3] = new Fio(pistol.createWeapon());
 
         currentPlayer = soldiers[currentSoldierIndex];
         Soldier.setTextureFromFile(currentPlayer->getTexturePath());

@@ -51,11 +51,13 @@ public:
 	void handleInput() {
 		if (Keyboard::isKeyPressed(Keyboard::D))
 		{
+			if (velocityX < 0)	velocityX = 0;
 			velocityX += acceleration;
 			if (velocityX > max_speed) velocityX = max_speed;
 		}
 		else if (Keyboard::isKeyPressed(Keyboard::A))
 		{
+			if (velocityX > 0)	velocityX = 0;
 			velocityX -= acceleration;
 			if (velocityX < -max_speed) velocityX = -max_speed;
 		}

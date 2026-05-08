@@ -4,21 +4,19 @@ using namespace sf;
 #include "Utility.h"
 
 
-class Projectile{
+class Projectile: public Entity{
 
 private:
-    Position position;
+   
     float velocityX;
     float velocityY;
     int damage;
     bool active;
-    Sprite sprite;
     const Texture* texture;
     
 
 public:
-    Projectile()
-        : position{ 0,0 }, velocityX(0),velocityY(0),
+    Projectile(): velocityX(0),velocityY(0),
         damage(1), active(false), texture(nullptr) {
     }
 
@@ -27,6 +25,7 @@ public:
     void activate(const Texture& tex, Position startPos, float velX, float velY, int dmg) {
         texture = &tex;
         sprite.setTexture(*texture);
+        //sprite.setScale(20.0f, 20.0f);
         position = startPos;
         velocityX= velX;
         velocityY = velY;
@@ -42,6 +41,11 @@ public:
         sprite.setPosition(position.x, position.y);
     }
 
+    void draw(RenderWindow& window) override {
+        if (!active) return;
+        window.draw(sprite);
+    }
+
     void draw(RenderWindow& window, float cameraOffset) {
         if (!active) return;
         sprite.setPosition(position.x - cameraOffset, position.y);
@@ -50,4 +54,6 @@ public:
 
     void deactivate() { active = false; }
     bool isActive() const { return active; }
+    float getWidth() const { return 123.0f; }
+    float getHeight() const { return 12.0f; }
 };
