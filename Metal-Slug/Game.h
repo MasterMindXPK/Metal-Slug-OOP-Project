@@ -1,5 +1,4 @@
 #pragma once
-
 #include <SFML/Graphics.hpp>
 #include "Camera.h"
 #include "Survival.h"
@@ -27,11 +26,14 @@ private:
     Survival survival;
     Soldier Soldier;
     Pistol pistol;
-
     Texture bulletTex;
     Sprite bulletSp;
     Texture backgroundTex;
     Sprite backgroundSprite;
+    bool levelCleared = false;
+    int clearFrames = 0;
+    const int clearDurationFrames = 120;
+    Text levelClearText;
 
     static const int NUM_CHARACTERS = 4;
     int currentSoldierIndex;
@@ -94,10 +96,14 @@ public:
                 static_cast<float>(screenW) / bgWidth,
                 static_cast<float>(screenH) / bgHeight);
         }
-        
+        levelClearText.setFont(menuFont);
+        levelClearText.setString("LEVEL CLEAR");
+        levelClearText.setCharacterSize(90);
+        levelClearText.setFillColor(Color::Yellow);
+        levelClearText.setPosition(520, 200);
         
         if (!survival.loadTextures("Data/blocks/grass_block_side.png",
-            "Data/blocks/stone.png")) return false;
+            "Data/blocks/aqua.jpg", "Data/blocks/stone.png")) return false;
         pistol.setProjectileTexture(bulletTex);
         Menu();
         return true;
@@ -164,35 +170,44 @@ public:
 
     void update() {
         if (state == GameState::Menu) return;
-        Soldier.applyGravity();
-        Soldier.handleInput();
-        float nextX = Soldier.getPosition().x + Soldier.getVelocityX();
-        float correctedX = survival.horizontalCollision(
-            Soldier.getPosition().x,
-            Soldier.getPosition().y,
-            Soldier.getVelocityX(),
-            Soldier.getWidth(),
-            Soldier.getHeight()
-
-        );
-        pistol.updateBullets(0.016);
-        if (correctedX != Soldier.getPosition().x + Soldier.getVelocityX()) {
-            Soldier.applyHorizontalCollision(correctedX);
+        bool inWater = survival.isWaterAt(Soldier.getPosition().x + Soldier.getWidth() * 0.5f,  Soldier.getPosition().y + Soldier.getHeight() * 0.5f);
+        float gravityStrength, speedMultiplier;
+        if (inWater) {
+            gravityStrength = 1.3;
+            speedMultiplier = 0.65;
         }
         else {
-            Soldier.setPosition({ correctedX, Soldier.getPosition().y });
+            gravityStrength = 1;
+            speedMultiplier = 1;
         }
+     
+        Soldier.applyGravity(gravityStrength);
+        Soldier.handleInput(speedMultiplier);
+        float nextX = Soldier.getPosition().x + Soldier.getVelocityX();
+        float correctedX = survival.horizontalCollision(Soldier.getPosition().x, Soldier.getPosition().y, Soldier.getVelocityX(), Soldier.getWidth(), Soldier.getHeight());
+        pistol.updateBullets(0.016);
+        if (correctedX != Soldier.getPosition().x + Soldier.getVelocityX()) Soldier.applyHorizontalCollision(correctedX);
+        
+        else Soldier.setPosition({ correctedX, Soldier.getPosition().y });
+        
 
         float nextY = Soldier.getPosition().y + Soldier.getVelocityY();
-        float groundY = survival.verticalCollision(
-            Soldier.getPosition().x,
-            Soldier.getPosition().y,
-            Soldier.getWidth(),
-            Soldier.getHeight(),
-            Soldier.getVelocityY()
-        );
+        float groundY = survival.verticalCollision( Soldier.getPosition().x, Soldier.getPosition().y, Soldier.getWidth(), Soldier.getHeight(), Soldier.getVelocityY());
         Soldier.applyVerticalCollision(groundY, nextY);
 
+        int col = static_cast<int>(Soldier.getPosition().x / survival.getCellSize());
+        if (col >= survival.getWidth() - 1) {
+            levelCleared = true;
+            clearFrames = clearDurationFrames;
+
+            survival.generateSurvival();
+            Soldier.setPosition({ 0.f, 0.f }); 
+           
+        }
+        if (clearFrames > 0) {
+            clearFrames--;
+            if (clearFrames == 0) levelCleared = false;
+        }
         camera.update(Soldier.getPosition().x, camMinX,
             screenW - camMinX - Soldier.getWidth());
 
@@ -212,6 +227,7 @@ public:
 
         window.clear();
         window.draw(backgroundSprite);
+        if (levelCleared) window.draw(levelClearText);
         survival.drawsurvival(window, camera.getCameraOffset());
         window.draw(Soldier.getSprite());
         pistol.drawBullets(window, camera.getCameraOffset());

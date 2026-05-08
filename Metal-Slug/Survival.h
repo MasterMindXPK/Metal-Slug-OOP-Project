@@ -1,6 +1,10 @@
 #pragma once
 #include<SFML/Graphics.hpp>
+#include <cstdlib>
+#include<ctime>
+
 using namespace sf;
+
 
 class Survival {
 private:
@@ -25,8 +29,10 @@ private:
 	}
 
 	Texture grassTex;
+	Texture aquaTex;
 	Texture stoneTex;
 	Sprite grassSpr;
+	Sprite aquaSpr;
 	Sprite stoneSpr;
 	
 public:
@@ -42,36 +48,115 @@ public:
 		delete[] lvl;
 	}
 
-	void generateSurvival() {
-		int groundRow = height - 3;//base
-		int hillPeak = height - 7;//max height of terrain
-		int trenchMin = height - 2;//min height of terrain
+	void generateAquaticSeg(int startCol, int endCol, int& groundRow) {
+		int hillPeak = height - (4 + rand() % 2);   
+		int trenchMin = height - (2 + rand() % 2);  
+		int progress = 0;
 
-		const int sets = 7;
-		const int repLen[sets] = { 15,6,6,4,4,4,10 };	//length of each repition of blocks
-		const int repSlope[sets] = { 0,-1,1,1,0,-1,0 };//flat/up/down
 
-		int idx = 0;//current set of blocks/idx of repLen
-		int progress = 0;//columns in current set
 
-		for (int col = 0; col < width; col += 1)
-		{
-			groundRow += repSlope[idx];//slope of current of set
-			progress += 1;
-			if (progress >= repLen[idx])
-				if (progress >= repLen[idx])
-				{
-					progress = 0;
-					idx += 1;
-					if (idx >= sets) idx = 0;
-				}
+
+		for (int col = startCol; col < endCol; ++col) {
+			progress++;
+			if (progress >= 6)  progress = 0;
+
+
 
 			if (groundRow < hillPeak) groundRow = hillPeak;
 			if (groundRow > trenchMin) groundRow = trenchMin;
 
-			for (int row = groundRow; row < height; row += 1) lvl[row][col] = 'g';
+			for (int row = groundRow; row < height; ++row)  lvl[row][col] = 'a';
+			
 		}
 	}
+	void generatePeakSeg(int startCol, int endCol, int& groundRow) {
+		int hillPeak = height - (6 + rand() % 4);  // higher
+		int trenchMin = height - (4 + rand() % 3);
+		int idx = 0, progress = 0;
+
+
+
+		int slopePattern[4] = { -1, 1, -1, 0 };
+	
+
+		for (int col = startCol; col < endCol; ++col) {
+			groundRow += slopePattern[idx];
+			progress++;
+			if (progress >= 6) { progress = 0; 
+			idx = (idx + 1) % 4; 
+			}
+
+
+
+			if (groundRow < hillPeak) groundRow = hillPeak;
+			if (groundRow > trenchMin) groundRow = trenchMin;
+
+			for (int row = groundRow; row < height; ++row) {
+				lvl[row][col] = 'g';
+			}
+		}
+	}
+
+	void generatePlainSeg(int startCol, int endCol, int& groundRow) {
+		int hillPeak = height - (4 + rand() % 2);   
+		int trenchMin = height - (3 + rand() % 2);
+
+		int slopePattern[4] = { 0, 1, 0, -1 };
+		int idx = 0;
+		int progress = 0;
+
+		for (int col = startCol; col < endCol; ++col) {
+			groundRow += slopePattern[idx];
+			progress++;
+			if (progress >= 6) { progress = 0; 
+			idx = (idx + 1) % 4; }
+
+
+
+			if (groundRow < hillPeak) groundRow = hillPeak;
+			if (groundRow > trenchMin) groundRow = trenchMin;
+
+
+
+			for (int row = groundRow; row < height; ++row) {
+				lvl[row][col] = 'g';
+			}
+		}
+	}
+
+
+
+	void generateSurvival() {
+		int groundRow = height - 3;
+
+		const int segments=14;
+		const int segLen = 25;
+
+		int count;
+		for (int seg = 0; seg < segments; ++seg) {
+			
+			count = rand() % 3;
+
+			int startCol = seg * segLen;
+			int endCol = (seg + 1) * segLen;
+
+			if (count==0) {
+				generateAquaticSeg(startCol, endCol, groundRow);
+			}
+			else if (count == 1) {
+				generatePeakSeg(startCol, endCol, groundRow);
+			}
+			else {
+				generatePlainSeg(startCol, endCol, groundRow);
+			}
+		}
+
+		for (int col = 0; col < width; ++col) {
+			lvl[height - 1][col] = 's';
+		}
+	}
+
+
 	float verticalCollision(float Soldier_x, float Soldier_y, float Pwidth, float Pheight, float velocityY)
 	{
 		float Soldier_bottom = Soldier_y + velocityY + Pheight;
@@ -83,7 +168,7 @@ public:
 		{
 			for (int col = left_col; col <= right_col; col++)
 			{
-				if (col >= 0 && col < width && row < height && lvl[row][col] == 'g')
+				if (col >= 0 && col < width && row < height && lvl[row][col] == 'g' || col >= 0 && col < width && row < height && lvl[row][col] == 's')
 					return row * cell_size - Pheight;
 			}
 		}
@@ -111,7 +196,7 @@ public:
 
 			for (int row = topRow; row <= bottomRow; row += 1)
 			{
-				if (rightCol >= 0 && rightCol < width && lvl[row][rightCol] == 'g')
+				if (rightCol >= 0 && rightCol < width && lvl[row][rightCol] == 'g' || rightCol >= 0 && rightCol < width && lvl[row][rightCol] == 's')
 				{
 					newX = rightCol * cell_size - Pwidth;
 					break;
@@ -123,7 +208,7 @@ public:
 			int leftCol = (int)(newX / cell_size);
 			for (int row = topRow; row <= bottomRow; row += 1)
 			{
-				if (leftCol >= 0 && leftCol < width && lvl[row][leftCol] == 'g')
+				if (leftCol >= 0 && leftCol < width && lvl[row][leftCol] == 'g' || leftCol >= 0 && leftCol < width && lvl[row][leftCol] == 's')
 				{
 					newX = (leftCol + 1) * cell_size;
 					break;
@@ -133,12 +218,21 @@ public:
 
 		return newX;
 	}
-	bool loadTextures(const char* grassPath, const char* stonePath) {
+	bool loadTextures(const char* grassPath, const char* aquaPath, const char* stonePath) {
 		if (!grassTex.loadFromFile(grassPath)) return false;
+		if (!aquaTex.loadFromFile(aquaPath))  return false;
 		if (!stoneTex.loadFromFile(stonePath))  return false;
 		grassSpr.setTexture(grassTex);
+		aquaSpr.setTexture(aquaTex);
 		stoneSpr.setTexture(stoneTex);
 		return true;
+	}
+
+	bool isWaterAt(float x, float y) const {
+		int col = static_cast<int>(x / cell_size);
+		int row = static_cast<int>(y / cell_size);
+		if (row < 0 || row >= height || col < 0 || col >= width) return false;
+		return lvl[row][col] == 'a';
 	}
 
 	void drawsurvival(RenderWindow& window, float camera_x)
@@ -152,7 +246,12 @@ public:
 					grassSpr.setPosition(j * cell_size - camera_x, i * cell_size);
 					window.draw(grassSpr);
 				}
-				if (lvl[i][j] == 'u')
+				else if (lvl[i][j] == 'a')
+				{
+					aquaSpr.setPosition(j * cell_size - camera_x, i * cell_size);
+					window.draw(aquaSpr);
+				}
+				else if (lvl[i][j] == 's')
 				{
 					stoneSpr.setPosition(j * cell_size - camera_x, i * cell_size);
 					window.draw(stoneSpr);
@@ -161,4 +260,6 @@ public:
 			}
 		}
 	}
+	int getWidth() const { return width; }
+	int getCellSize() const { return cell_size; }
 };
