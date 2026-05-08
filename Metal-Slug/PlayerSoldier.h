@@ -1,12 +1,14 @@
 #pragma once
 #include"Soldier.h"
+#include "Weapon.h"
+
 
 class PlayerSoldier{
 protected:
 	int grenadeCount;
 	float fireRateMultiplier;
 	int activeWeapon;
-	//Weapon* currentWeapon;
+	Weapon* currentWeapon;
 	bool activeState;
 
 	void shoot(){}

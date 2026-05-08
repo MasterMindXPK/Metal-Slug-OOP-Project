@@ -5,6 +5,10 @@
 #include "Level.h"
 #include "Soldier.h"
 #include "PlayerSoldier.h"
+#include "Weapon.h"
+#include "Projectile.h"
+
+
 using namespace sf;
 
 class Game {
@@ -13,7 +17,10 @@ private:
     Camera camera;
     Level level;
     Soldier Soldier;
+    Pistol pistol;
 
+    Texture bulletTex;
+    Sprite bulletSp;
     Texture backgroundTex;
     Sprite backgroundSprite;
 
@@ -24,11 +31,13 @@ private:
 
     const int screenW = 1600;
     const int screenH = 900;
-  
+
     const float camMinX = 300.0f;
 
     bool loadAssets() {
         if (!backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) return false;
+        if (!bulletTex.loadFromFile("Data/Items/bullet.png")) return false;
+        bulletSp.setTexture(bulletTex);
         backgroundSprite.setTexture(backgroundTex);
         unsigned int bgWidth = backgroundTex.getSize().x;
         unsigned int bgHeight = backgroundTex.getSize().y;
@@ -42,6 +51,7 @@ private:
         
         if (!level.loadTextures("Data/blocks/grass_block_side.png",
             "Data/blocks/stone.png")) return false;
+        pistol.setProjectileTexture(bulletTex);
         return true;
     }
     void handleEvents() {
@@ -49,8 +59,8 @@ private:
         while (window.pollEvent(ev)) {
             if (ev.type == Event::Closed) window.close();
 
-            if (ev.type == Event::KeyPressed) {
-                if (ev.key.code == Keyboard::Z) {
+           
+                if (Keyboard::isKeyPressed(Keyboard::Z)) {
                     currentSoldierIndex = (currentSoldierIndex + 1) % NUM_CHARACTERS;
                     currentPlayer = soldiers[currentSoldierIndex];
 					Soldier.setTextureFromFile(currentPlayer->getTexturePath());
@@ -58,7 +68,15 @@ private:
                 else if (ev.key.code == Keyboard::Escape) {
                     window.close();
                 }
-            }
+                else if (Keyboard::isKeyPressed(Keyboard::Space)) {
+                    Position spawn;
+                    spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
+                    spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
+                    pistol.attack(spawn, 1.0f);
+                    
+                }
+                
+            
         }
     }
 
@@ -72,8 +90,9 @@ private:
             Soldier.getVelocityX(),
             Soldier.getWidth(),
             Soldier.getHeight()
-        );
 
+        );
+        pistol.updateBullets(0.016);
         if (correctedX != Soldier.getPosition().x + Soldier.getVelocityX()) {
             Soldier.applyHorizontalCollision(correctedX);
         }
@@ -103,6 +122,7 @@ private:
         window.draw(backgroundSprite);
         level.drawLevel(window, camera.getCameraOffset());
         window.draw(Soldier.getSprite());
+        pistol.drawBullets(window, camera.getCameraOffset());
         window.display();
     }
 
