@@ -2,7 +2,7 @@
 #include<SFML/Graphics.hpp>
 using namespace sf;
 
-class Level {
+class Survival {
 private:
 	const int height;
 	const int width;
@@ -30,11 +30,11 @@ private:
 	Sprite stoneSpr;
 	
 public:
-	Level(int height, int width, int cell_size, int scrHeight, int scrWidth): height(height), width(width), cell_size(cell_size),lvl(nullptr), screenHeight(scrHeight), screenWidth(scrWidth) {
+	Survival(int height, int width, int cell_size, int scrHeight, int scrWidth): height(height), width(width), cell_size(cell_size),lvl(nullptr), screenHeight(scrHeight), screenWidth(scrWidth) {
 		allocateLvl();
 	}
 
-	~Level() {
+	~Survival() {
 		for (int i = 0; i < height; i++)
 		{
 			delete[] lvl[i];
@@ -42,7 +42,7 @@ public:
 		delete[] lvl;
 	}
 
-	void generateLevel() {
+	void generateSurvival() {
 		int groundRow = height - 3;//base
 		int hillPeak = height - 7;//max height of terrain
 		int trenchMin = height - 2;//min height of terrain
@@ -140,11 +140,12 @@ public:
 		stoneSpr.setTexture(stoneTex);
 		return true;
 	}
-	void drawLevel(RenderWindow& window, float camera_x)
+
+	void drawsurvival(RenderWindow& window, float camera_x)
 	{
-		for (int i = 0; i < height; i += 1)
+		for (int i = 0; i < height; i ++)
 		{
-			for (int j = 0; j < width; j += 1)
+			for (int j = 0; j < width; j ++)
 			{
 				if (lvl[i][j] == 'g')
 				{
