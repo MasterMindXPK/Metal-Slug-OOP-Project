@@ -32,7 +32,7 @@ protected:
 	SoldierState state;
 
 public:
-	Soldier() :max_speed(10.0f), acceleration(0.35), terminal_velocity(20), gravity(1.0f), height(0.2f * 438), width(0.2f * 347), jumpStrength(-18), state(SoldierState::Normal) {
+	Soldier() :max_speed(70.0f), acceleration(0.35), terminal_velocity(20), gravity(1.0f), height(0.2f * 438), width(0.2f * 347), jumpStrength(-18), state(SoldierState::Normal) {
 		position.x = 60;
 		position.y = 22;
 		isJumping = false;
@@ -48,7 +48,7 @@ public:
 
 	}
 
-	void handleInput() {
+	void handleInput(float speedMultiplier = 1.0f) {
 		if (Keyboard::isKeyPressed(Keyboard::D))
 		{
 			if (velocityX < 0)	velocityX = 0;
@@ -95,9 +95,9 @@ public:
 		position.y += disY;
 	}
 
-	void applyGravity() {
+	void applyGravity(float gravityMultiplier = 1.0f) {
 		if (!onGround) {
-			velocityY += gravity;
+			velocityY += gravity * gravityMultiplier;
 			if (velocityY > terminal_velocity) velocityY = terminal_velocity;
 		}
 		
