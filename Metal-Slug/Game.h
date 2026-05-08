@@ -29,6 +29,8 @@ private:
     PlayerSoldier* soldiers[NUM_CHARACTERS];
     PlayerSoldier* currentPlayer;
 
+	Clock clock;
+
     const int screenW = 1600;
     const int screenH = 900;
 
@@ -52,6 +54,7 @@ private:
         if (!level.loadTextures("Data/blocks/grass_block_side.png",
             "Data/blocks/stone.png")) return false;
         pistol.setProjectileTexture(bulletTex);
+        
         return true;
     }
     void handleEvents() {
@@ -59,8 +62,7 @@ private:
         while (window.pollEvent(ev)) {
             if (ev.type == Event::Closed) window.close();
 
-           
-                if (Keyboard::isKeyPressed(Keyboard::Z)) {
+            if (Keyboard::isKeyPressed(Keyboard::Z)) {
                     currentSoldierIndex = (currentSoldierIndex + 1) % NUM_CHARACTERS;
                     currentPlayer = soldiers[currentSoldierIndex];
 					Soldier.setTextureFromFile(currentPlayer->getTexturePath());
@@ -72,10 +74,13 @@ private:
                     Position spawn;
                     spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
                     spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-                    pistol.attack(spawn, 1.0f);
+                    pistol.attack(spawn, 1.0f, currentPlayer->getFireRateMultiplier());
+
                     
                 }
-                
+            if(Keyboard::isKeyPressed(Keyboard::F)) {
+				currentPlayer->specialMove();
+			}
             
         }
     }

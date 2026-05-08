@@ -1,10 +1,6 @@
-#ifndef UTILITY_H
-#define UTILITY_H
+#pragma once
 
 struct Position {
 	float x;
 	float y;
 };
-
-#endif
-

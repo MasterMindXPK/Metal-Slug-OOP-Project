@@ -3,6 +3,7 @@
 #include "Weapon.h"
 
 
+
 class PlayerSoldier{
 protected:
 	int grenadeCount;
@@ -18,14 +19,20 @@ protected:
 	void setState(){}
 	//void boardVehicle(playerVehicle*){}
 	//void ejectVehicle(playerVehicle*){}
-	virtual void specialMove() = 0;
+	Clock specialMoveTimer;
+	bool specialMoveActive;
 
 public:
+	
+	virtual void specialMove() = 0;
+	void equipWeapon(Weapon* w) {
+		currentWeapon = w;
+	}
 	// Getters
 	int getGrenadeCount() const { return grenadeCount; }
 	int getActiveWeapon() const { return activeWeapon; }
 	bool isActive() const { return activeState; }
-
+	float getFireRateMultiplier() const { return fireRateMultiplier; }
 	// Setters
 	void setGrenadeCount(int count) { grenadeCount = count; }
 	void setActiveWeapon(int weaponIndex) { activeWeapon = weaponIndex; }
@@ -89,10 +96,19 @@ public:
 		fireRateMultiplier = 1;
 		activeWeapon = 0;
 		activeState = true;
+		specialMoveActive = false;
 
 	}
 	virtual void specialMove() override {
-		// Implement Fio's special move(tech support)
+		// Implement Fio's special move (Fire rate increased by 100% for 10 seconds)
+		if (Keyboard::isKeyPressed(Keyboard::F)) {
+			if (!specialMoveActive) {
+				specialMoveActive = true;
+				fireRateMultiplier = 2.0f; // Double the fire rate
+				// Start a timer to reset the fire rate after 10 seconds
+				//clock.restart();
+			}
+		}
 	}
-	const char* getTexturePath() const override { return "Data/Characters/Fio.png"; }
+		const char* getTexturePath() const override { return "Data/Characters/Fio.png"; }
 };

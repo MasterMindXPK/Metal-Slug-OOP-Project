@@ -5,7 +5,7 @@
 #include "Utility.h"
 using namespace sf;
 
-enum class SoldierState {
+enum class SoldierState { // someone saw this code jaani, 11 may full release, 10 may bug fixes, 9 may animations, 8 may more animations, 7 may more animations, 6 may more animations, 5 may more animations, 4 may more animations, 3 may more animations, 2 may more animations, 1 may more animations
 	Normal,
 	Damaged,
 	Mummy,
@@ -16,8 +16,8 @@ class Soldier : public DamageableEntity {
 protected:
 	const float height;
 	const float width;
-	const float jumpStrength; // Initial jump velocity
-	const float gravity;  // Gravity acceleration
+	const float jumpStrength;// Initial jump velocity
+	const float gravity;// Gravity acceleration
 	bool isJumping; // Track if jumping
 	bool isMoving;
 	bool facing_left;
@@ -32,7 +32,7 @@ protected:
 	SoldierState state;
 
 public:
-	Soldier() :max_speed(10.0f), acceleration(0.2), terminal_velocity(20), gravity(1.0f), height(0.2f * 438), width(0.2f * 347), jumpStrength(-18), state(SoldierState::Normal) {
+	Soldier() :max_speed(10.0f), acceleration(0.35), terminal_velocity(20), gravity(1.0f), height(0.2f * 438), width(0.2f * 347), jumpStrength(-18), state(SoldierState::Normal) {
 		position.x = 60;
 		position.y = 22;
 		isJumping = false;
