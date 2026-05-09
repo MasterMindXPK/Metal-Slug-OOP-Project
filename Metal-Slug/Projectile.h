@@ -22,10 +22,10 @@ public:
 
    
 
-    void activate(const Texture& tex, Position startPos, float velX, float velY, int dmg) {
+    void activate(const Texture& tex, Position startPos, float velX, float velY, int dmg, float scaleX = 1.0f, float scaleY = 1.0f) {
         texture = &tex;
         sprite.setTexture(*texture);
-        //sprite.setScale(20.0f, 20.0f);
+        sprite.setScale(scaleX, scaleY);
         position = startPos;
         velocityX= velX;
         velocityY = velY;
