@@ -20,7 +20,9 @@ public:
     Position getPosition() const {
         return position;
     }
-
+    void setSprPos(float x, float y) {
+        sprite.setPosition(x, y);
+    }
     void setPosition(const Position& pos) {
         position = pos;
         //sprite.setPosition(static_cast<float>(pos.x), static_cast<float>(pos.y));

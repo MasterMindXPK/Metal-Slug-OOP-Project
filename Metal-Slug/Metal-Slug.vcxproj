@@ -138,6 +138,7 @@
     <ClInclude Include="DamageableEntity.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="Spawn.h" />
     <ClInclude Include="Survival.h" />
     <ClInclude Include="PlayerSoldier.h" />
     <ClInclude Include="Projectile.h" />

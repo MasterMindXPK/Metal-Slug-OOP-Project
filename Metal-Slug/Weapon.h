@@ -104,6 +104,7 @@ public:
 		projectileScaleX = scaleX;
 		projectileScaleY = scaleY;
 	}
+
 	~ProjectileWeapon() { delete[] bullets; }
 };
 
