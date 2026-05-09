@@ -25,7 +25,8 @@ private:
     Camera camera;
     Survival survival;
     Soldier Soldier;
-    Pistol pistol;
+    
+    
     Texture bulletTex;
     Sprite bulletSp;
     Texture backgroundTex;
@@ -39,6 +40,9 @@ private:
     int currentSoldierIndex;
     PlayerSoldier* soldiers[NUM_CHARACTERS];
     PlayerSoldier* currentPlayer;
+    static const int MAX_LEVEL_WEAPONS = 20;
+    Weapon* levelWeapons[MAX_LEVEL_WEAPONS];
+    int levelWeaponCount = 0;
 
 	Clock clock;
 
@@ -77,6 +81,14 @@ public:
     }
 
     bool loadAssets() {
+        //Player
+        //if (!bulletTex.loadFromFile("Data/Items/bullet.png")) return false;
+        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+            soldiers[i]->getActiveWeapon()->setProjectileTexture();
+        }
+
+
+        //Background
         if (!menuBgTex.loadFromFile("Data/Backgrounds/Intro.jpg")) return false;
         menuBgSprite.setTexture(menuBgTex);
         menuBgSprite.setScale(
@@ -85,11 +97,8 @@ public:
         );
 
         if (!backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) return false;
-        if (!bulletTex.loadFromFile("Data/Items/bullet.png")) return false;
-        for (int i = 0; i < NUM_CHARACTERS; ++i) {
-            soldiers[i]->getActiveWeapon()->setProjectileTexture(bulletTex);
-        }
         backgroundSprite.setTexture(backgroundTex);
+
         unsigned int bgWidth = backgroundTex.getSize().x;
         unsigned int bgHeight = backgroundTex.getSize().y;
         if (bgWidth > 0 && bgHeight > 0)
@@ -106,7 +115,7 @@ public:
         
         if (!survival.loadTextures("Data/blocks/grass_block_side.png",
             "Data/blocks/aqua.jpg", "Data/blocks/stone.png")) return false;
-        pistol.setProjectileTexture(bulletTex);
+        //pistol.setProjectileTexture(bulletTex);
         Menu();
         return true;
     }
@@ -146,8 +155,9 @@ public:
                 enterHeld = enterNow;
                 return;
             }
+            
 
-            if (Keyboard::isKeyPressed(Keyboard::Z)) {
+			if (ev.type == Event::KeyPressed && ev.key.code == Keyboard::Z) {
                     currentSoldierIndex = (currentSoldierIndex + 1) % NUM_CHARACTERS;
                     currentPlayer = soldiers[currentSoldierIndex];
 					Soldier.setTextureFromFile(currentPlayer->getTexturePath());
@@ -235,6 +245,14 @@ public:
             soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
         }
 		currentPlayer->updateSpecialMove();
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            Position spawn;
+            spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
+            spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
+            currentPlayer->getActiveWeapon()->attack(spawn, 1.0f, 1.f);
+        }
+        else
+            currentPlayer->getActiveWeapon()->stopFiring();
     }
 
     void render() {
@@ -268,10 +286,10 @@ public:
         window.setVerticalSyncEnabled(true);
         window.setFramerateLimit(60);
 
-        soldiers[0] = new Marco(pistol.createWeapon());
-        soldiers[1] = new Tarma(pistol.createWeapon());
-        soldiers[2] = new Eri(pistol.createWeapon());
-        soldiers[3] = new Fio(pistol.createWeapon());
+        soldiers[0] = new Marco();
+        soldiers[1] = new Tarma();
+        soldiers[2] = new Eri();
+        soldiers[3] = new Fio();
 
         currentPlayer = soldiers[currentSoldierIndex];
         Soldier.setTextureFromFile(currentPlayer->getTexturePath());

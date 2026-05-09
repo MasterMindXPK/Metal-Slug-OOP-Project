@@ -9,9 +9,8 @@ class PlayerSoldier: public Soldier{
 protected:
 	int grenadeCount;
 	float fireRateMultiplier;
-	int activeWeapon;
-	Weapon* currentWeapon;
-	Weapon* inventory[2];
+	Weapon* ownPistol;
+	Weapon* equippedWeapon;
 	bool activeState;
 	void throwGrenade() {}
 	void meleeAttack(){}
@@ -23,25 +22,29 @@ protected:
 	bool specialMoveActive;
 
 public:
-	PlayerSoldier(Weapon* w) {
-		activeWeapon = 0;
+	PlayerSoldier() {
+		ownPistol = WeaponFactory::createRocketLauncher();
+		equippedWeapon = ownPistol;
 		specialMoveActive = false;
-		inventory[0] = w;
 		activeState = true;
-		currentWeapon = inventory[activeWeapon];
+	}
+	~PlayerSoldier() {
+		delete ownPistol;
 	}
 	virtual void specialMove() = 0;
 	virtual void updateSpecialMove() = 0;
-	void equipWeapon(int index) {
-		currentWeapon = inventory[index];
+	void equipWeapon(Weapon* w) {
+		equippedWeapon = w;
 	}
-	void addWeapon(Weapon* w) {
-		inventory[1] = w; //0 is always the pistol, 1 is the special weapon
+	void dropWeapon(Weapon* w) {
+		if (equippedWeapon == w) {
+			equippedWeapon = ownPistol;
+		}
 	}
 
 	virtual void shoot(Position spawn) {
-		
-		currentWeapon->attack(spawn, 1.0f, getFireRateMultiplier());
+
+		equippedWeapon->attack(spawn, 1.0f, getFireRateMultiplier());
 		
 	}
 	// Getters
@@ -49,10 +52,9 @@ public:
 	bool isActive() const { return activeState; }
 	float getFireRateMultiplier() const { return fireRateMultiplier; }
 	bool getSpecialMoveActive() { return specialMoveActive; }
-	Weapon* getActiveWeapon() const { return inventory[activeWeapon]; }
+	Weapon* getActiveWeapon() const { return equippedWeapon; }
 	// Setters
 	void setGrenadeCount(int count) { grenadeCount = count; }
-	void setActiveWeapon(int weaponIndex) { activeWeapon = weaponIndex; }
 	void setActiveState(bool state) { activeState = state; }
 
 	virtual const char* getTexturePath() const = 0;
@@ -62,7 +64,7 @@ class Marco : public PlayerSoldier {
 private:
 
 public:
-	Marco(Weapon* w): PlayerSoldier(w) {
+	Marco(){
 		grenadeCount = 8; //2 less than normal
 		fireRateMultiplier = 1.25; //25% higher fire rate
 		
@@ -86,9 +88,9 @@ public:
 	  
 	void shoot(Position spawn) override {
 		std::cout << "OVERRIDEN SHOOTING";
-		currentWeapon->attack(spawn, 1.0f, getFireRateMultiplier());
+		equippedWeapon->attack(spawn, 1.0f, getFireRateMultiplier());
 		if (specialMoveActive) {
-			currentWeapon->attackDirect(spawn, -1.0f); 
+			equippedWeapon->attackDirect(spawn, -1.0f); 
 		}
 	}
 };
@@ -96,7 +98,7 @@ public:
 
 class Tarma : public PlayerSoldier {
 public:
-	Tarma(Weapon* w) : PlayerSoldier(w) {
+	Tarma(){
 		grenadeCount = 10;
 		fireRateMultiplier = 1.0;
 
@@ -113,7 +115,7 @@ public:
 
 class Eri : public PlayerSoldier {
 public:
-	Eri(Weapon* w) : PlayerSoldier(w) {
+	Eri(){
 		grenadeCount = 10; 
 		fireRateMultiplier = 0.80;
 
@@ -130,7 +132,7 @@ public:
 
 class Fio : public PlayerSoldier {
 public:
-	Fio(Weapon* w) : PlayerSoldier(w) {
+	Fio(){
 		grenadeCount = 10; 
 		fireRateMultiplier = 1.0f;
 	}
