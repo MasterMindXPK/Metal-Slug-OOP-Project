@@ -18,22 +18,18 @@ protected:
     bool facing_left;
     bool facing_right;
     int speed;
-<<<<<<< Updated upstream
+
     RectangleShape debugShape;
 
 
     float gravity;
     float terminal_velocity;
     bool onGround;
-=======
 
-    virtual void die() = 0;
->>>>>>> Stashed changes
+
 
 
 public:
-
-<<<<<<< Updated upstream
     void applyGravity(float gravityMultiplier = 1.0f) {
         if (!onGround) {
             velocityY += gravity * gravityMultiplier;
@@ -75,29 +71,14 @@ public:
     void setDebugColor(Color color) {
         debugShape.setFillColor(color);
     }
-
     void randomMoveX() {
         position.x += velocityX;
     }
 
     void detectCollision(Survival& map) {
         float nextX = position.x + velocityX;
-        float correctedX= map.horizontalCollision(position.x, position.y, velocityX, width, height);
-=======
-    Enemy(int sp = 10) : speed(sp), velocityX(sp), velocityY(0), width(50), height(70) {
-        facing_left = false;
-        facing_right = true;
-    }
+        float correctedX = map.horizontalCollision(position.x, position.y, velocityX, width, height);
 
-    
-    void MovementX() {
-        position.x += velocityX;
-    }
-    void DetectCollisionX(Survival& survival) {
-        float nextX = position.x + velocityX;
-        float correctedX = survival.horizontalCollision(position.x, position.y, velocityX, width, height);
-
->>>>>>> Stashed changes
         if (correctedX != nextX) {
             velocityX = -velocityX;
             facing_left = !facing_left;
@@ -108,7 +89,6 @@ public:
             position.x = nextX;
         }
     }
-<<<<<<< Updated upstream
     
 
     
@@ -121,12 +101,7 @@ public:
     float getVelocityY() const { return velocityY; }
     virtual void updateProjectiles(float dt, Survival& map, int screenW, int screenH) {}
     virtual void drawProjectiles(RenderWindow& window, float cameraOffset) {}
-=======
 
-
-    float getWidth() const { return width; }
-    float getHeight() const { return height; }
->>>>>>> Stashed changes
 };
 
 
@@ -143,34 +118,8 @@ public:
         : DamageableEntity(hp), Enemy(sp), range(r) {
     }
 
-<<<<<<< Updated upstream
 
 
-  
-=======
-    moveX() {
-
-
-    
-
-
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> Stashed changes
 };
 
 class Rebel : public Infantry {
