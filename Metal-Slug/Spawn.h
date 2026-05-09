@@ -1,4 +1,5 @@
 #pragma once
+<<<<<<< Updated upstream
 #include "Enemy.h"
 #include "Survival.h"
 enum BiomeType { aquatic,Mountain,plain};
@@ -224,3 +225,6 @@ class VehicleSpawn {
 
 
 };
+=======
+
+>>>>>>> Stashed changes
