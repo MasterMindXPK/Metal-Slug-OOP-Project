@@ -24,7 +24,6 @@ private:
     RenderWindow window;
     Camera camera;
     Survival survival;
-    Soldier Soldier;
     Pistol pistol;
     Texture bulletTex;
     Sprite bulletSp;
@@ -35,9 +34,11 @@ private:
     const int clearDurationFrames = 120;
     Text levelClearText;
 
-    static const int NUM_CHARACTERS = 4;
+
+    Soldier Soldier;
+    static const int players= 4;
     int currentSoldierIndex;
-    PlayerSoldier* soldiers[NUM_CHARACTERS];
+    PlayerSoldier* soldiers[players];
     PlayerSoldier* currentPlayer;
 
 	Clock clock;
@@ -86,7 +87,7 @@ public:
 
         if (!backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) return false;
         if (!bulletTex.loadFromFile("Data/Items/bullet.png")) return false;
-        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+        for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->setProjectileTexture(bulletTex);
         }
         backgroundSprite.setTexture(backgroundTex);
@@ -148,7 +149,7 @@ public:
             }
 
             if (Keyboard::isKeyPressed(Keyboard::Z)) {
-                    currentSoldierIndex = (currentSoldierIndex + 1) % NUM_CHARACTERS;
+                    currentSoldierIndex = (currentSoldierIndex + 1) % players;
                     currentPlayer = soldiers[currentSoldierIndex];
 					Soldier.setTextureFromFile(currentPlayer->getTexturePath());
                     
@@ -173,6 +174,9 @@ public:
         bool inWater;
         float gravityStrength, speedMultiplier;
         if (state == GameState::Menu) return;
+
+
+
         inWater = survival.isWaterAt(Soldier.getPosition().x + Soldier.getWidth() * 0.5f, Soldier.getPosition().y + Soldier.getHeight() * 0.5f);
         if (inWater) {
             gravityStrength = 1.3;
@@ -231,7 +235,7 @@ public:
         /*for (int i = 0; i < NUM_CHARACTERS; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016);
         }*/
-        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+        for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
         }
 		currentPlayer->updateSpecialMove();
@@ -252,7 +256,7 @@ public:
         if (levelCleared) window.draw(levelClearText);
         survival.drawsurvival(window, camera.getCameraOffset());
         window.draw(Soldier.getSprite());
-        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+        for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->drawBullets(window, camera.getCameraOffset());
         }
 
@@ -278,7 +282,7 @@ public:
     }
 
     ~Game() {
-        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+        for (int i = 0; i < players; ++i) {
             delete soldiers[i];
             soldiers[i] = nullptr;
         }

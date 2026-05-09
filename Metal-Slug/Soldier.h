@@ -77,16 +77,6 @@ public:
 		window.draw(sprite);
 	}
 
-	
-
-	void takeDamage(int amount) override {
-		hp -= amount;
-		if (hp < 0) {
-			hp = 0;
-		}
-		state = SoldierState::Damaged;
-	}
-
 	void moveX(float disX) {
 		position.x += disX;
 	}
@@ -121,6 +111,7 @@ public:
 		hitBox.height = static_cast<int>(height);
 		return true;
 	}
+
 	void applyHorizontalCollision(float corrected) {
 		/*if (corrected != position.x)	velocityX = 0;*/
 
