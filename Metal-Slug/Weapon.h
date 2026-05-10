@@ -484,7 +484,56 @@ public:
 	}*/
 };
 
+class MeleeWeapon : public Weapon {
+private:
+	Sprite slashSprite;
+	Texture slashTexture;
+	bool slashing;
+	float slashTimer;
+	float slashDuration;
+	float range;        // how far the slash reaches in pixels
 
+	int  meleeDamage;
+
+public:
+	MeleeWeapon() : slashing(false), slashTimer(0.f),slashDuration(0.15f), range(80.f), meleeDamage(2) {
+		fireRate = 2.0f;   // max 2 slashes/sec
+		fireCooldown = 999.f; 
+		slashTexture.loadFromFile("Data/items/knife_slash.png");
+		slashSprite.setTexture(slashTexture);
+		slashSprite.setScale(0.15f, 0.15f);
+		
+	}
+	//returns true if slash started successfully, false if still on cooldown
+	bool swing(Position startPos, float dirX) {
+		if (fireCooldown < 1.0f / fireRate) return false;
+		slashSprite.setPosition(startPos.x + dirX * 20.f - 32.f, startPos.y);
+		slashing = true;
+		slashTimer = slashDuration;
+		fireCooldown = 0.f;
+		return true;
+	}
+
+	float getRange()  const { return range; }
+	int getMeleeDamage() const { return meleeDamage; }
+
+	void attack(Position, float, float, float) override {}
+	void attackDirect(Position, float, float)  override {}
+	void updateBullets(float dt, Survival&, int, int) override {
+		fireCooldown += dt;
+		if (!slashing) return;
+		slashTimer -= dt;
+		if (slashTimer <= 0.f) slashing = false;
+	}
+	void drawBullets(RenderWindow& window, float cameraOffset) override {
+		if (!slashing) return;
+		Position p{ slashSprite.getPosition().x, slashSprite.getPosition().x };
+		slashSprite.setPosition(p.x - cameraOffset, p.y);
+		window.draw(slashSprite);
+		slashSprite.setPosition(p.x + cameraOffset, p.y); 
+	}
+	void draw(RenderWindow& window) override {}
+};
 
 
 
@@ -504,4 +553,5 @@ public:
 	static Weapon* createLaserGun() { return new LaserGun(); }
 	static GrenadeWeapon* createHandGrenade(int throws) { return new HandGrenade(throws); }
 	static GrenadeWeapon* createFireBombGrenade(int throws) { return new FireBombGrenade(throws); }
+	static MeleeWeapon* createMeleeKnife() { return new MeleeWeapon(); }
 };

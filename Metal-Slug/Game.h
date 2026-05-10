@@ -8,6 +8,7 @@
 #include "Enemy.h"
 #include "Spawn.h"
 #include "Weapon.h"
+#include "DeveloperMode.h"
 using namespace sf;
 
 class Game {
@@ -303,11 +304,43 @@ public:
                 }
                 else if (Keyboard::isKeyPressed(Keyboard::G)) {
                     Position spawn;
-                    spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
+                    if(Soldier.getFacingDir() == 1) spawn.x = Soldier.getPosition().x + Soldier.getWidth()/2.0f; 
+					else spawn.x = Soldier.getPosition().x - Soldier.getWidth()/2.0f -20; 
+                    
                     spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
                     currentPlayer->throwGrenade(spawn, aimDirX, aimDirY);
                 }
-                
+                else if(Keyboard::isKeyPressed(Keyboard::P)) {
+                    DeveloperMode::toggle();
+			    }
+                else if(Keyboard::isKeyPressed(Keyboard::Num1)) {
+                    if(DeveloperMode::isActive())
+				        currentPlayer->dropWeapon(currentPlayer->getActiveWeapon());
+			    }
+                else if (Keyboard::isKeyPressed(Keyboard::Num2)){
+                    if (DeveloperMode::isActive()) {
+                        Weapon* w = WeaponFactory::createMachineGun();
+                        currentPlayer->equipWeapon(w);
+                    }
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::Num3)) {
+                    if (DeveloperMode::isActive()) {
+                        Weapon* w = WeaponFactory::createRocketLauncher();
+                        currentPlayer->equipWeapon(w);
+                    }
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::Num4)) {
+                    if (DeveloperMode::isActive()) {
+                        Weapon* w = WeaponFactory::createFlameshot();
+                        currentPlayer->equipWeapon(w);
+                    }
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::Num5)) {
+                    if (DeveloperMode::isActive()) {
+                        Weapon* w = WeaponFactory::createLaserGun();
+                        currentPlayer->equipWeapon(w);
+                    }
+                }
         }
     }
 
@@ -353,6 +386,7 @@ public:
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
 			soldiers[i]->updateGrenade(0.016f, survival, screenW, screenH);
+            currentPlayer->getKnife()->updateBullets(0.016f, survival, screenW, screenH);
         }
 
         //============================Shooting===============================================
@@ -378,7 +412,8 @@ public:
         bool mousePressedNow = Mouse::isButtonPressed(Mouse::Left);
         if (mousePressedNow) {
             Position spawn;
-            spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
+            if (Soldier.getFacingDir() == 1) spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2.0f;
+            else spawn.x = Soldier.getPosition().x - Soldier.getWidth() / 2.0f - 20;
             spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
             currentPlayer->shoot(spawn, aimDirX, aimDirY);
         }
@@ -386,7 +421,10 @@ public:
             currentPlayer->getActiveWeapon()->stopFiring();
         }
         mousePressedBefore = mousePressedNow;
-        
+		//=============================Melee Attack============================================
+        if (Keyboard::isKeyPressed(Keyboard::V)) {
+            processMelee();
+        }
 		//============================Enemy Logic===============================================
         float dt = 0.016f;
         float playerX = Soldier.getPosition().x;
@@ -470,6 +508,7 @@ public:
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->drawBullets(window, camera.getCameraOffset());
 			soldiers[i]->drawGrenade(window, camera.getCameraOffset());
+            currentPlayer->getKnife()->drawBullets(window, camera.getCameraOffset());
             // draw fire pools
             int poolCount = 0;
             FirePool* pools = soldiers[i]->getGrenade()->getFirePools(poolCount);
