@@ -35,6 +35,10 @@ public:
 
     void draw(RenderWindow& window, float cameraOffset) {
         if (!active) return;
+
+
+
+
         sprite.setPosition(position.x - cameraOffset, position.y);
         window.draw(sprite);
     }

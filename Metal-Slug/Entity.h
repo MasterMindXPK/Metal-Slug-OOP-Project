@@ -15,6 +15,8 @@ public:
 	virtual ~Entity() {}
     Entity(const Entity& other) {
         position = other.position;
+
+
         active= other.active;
         tex = other.tex;          
         sprite = other.sprite;   

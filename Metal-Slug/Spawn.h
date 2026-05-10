@@ -181,6 +181,8 @@ public:
 		if (!grenadeTex.loadFromFile("Data/Enemies/enemy_images/rsIMAGE1.png")) return false;//loading
 		if (!shieldTex.loadFromFile("Data/Enemies/enemy_images/ssIMAGE1.png")) return false;//loading
 		if (!bazookaTex.loadFromFile("Data/Enemies/enemy_images/bazIMAGE1.png")) return false;//laooading
+
+
 		if (!zombieTex.loadFromFile("Data/Enemies/enemy_images/zIMAGE1.png")) return false;//loading
 		if (!mummyTex.loadFromFile("Data/Enemies/enemy_images/mummyIMAGE1.png")) return false;
 		if (!paratrooperTex.loadFromFile("Data/Enemies/enemy_images/ptIMAGE1.png")) return false;//loading

@@ -144,26 +144,30 @@ private:
     }
     void processBulletCollisions() {
         for (int p = 0; p < players; p++) {
-            ProjectileWeapon* pw = dynamic_cast<ProjectileWeapon*>(soldiers[p]->getActiveWeapon());
-            if (!pw) continue;
+            Weapon* w = soldiers[p]->getActiveWeapon();
+           
+            
+            int total = w->getTotalAmmo();
+            if (total == 0) continue;
 
-            for (int i = 0; i < pw->getTotalAmmo(); i++) {
-                StraightProjectile& b = pw->getBullet(i);
-                if (!b.isActive()) continue;
+            for (int i = 0; i < total; i++) {
+                
+                
+                StraightProjectile* b = w->getBulletPtr(i);
+                if (!b || !b->isActive()) continue;
 
-
-                Position bPos = b.getPosition();
-
-
-                float bw = b.getWidth();
-                float bh = b.getHeight();
+                Position bPos = b->getPosition();
+               
+                
+                
+                float bw = b->getWidth();
+                float bh = b->getHeight();
 
                 for (int e = 0; e < enemyCount; e++) {
                     if (!activeEnemies[e]) continue;
-
-
-
-
+                    
+                    
+                    
                     float ex = activeEnemies[e]->getPosition().x;
                     float ey = activeEnemies[e]->getPosition().y;
                     float ew = activeEnemies[e]->getWidth();
@@ -175,8 +179,8 @@ private:
                         (bPos.y + bh > ey);
 
                     if (hit) {
-                        activeEnemies[e]->takeDamage((int)pw->getDamage());
-                        b.deactivate();
+                        activeEnemies[e]->takeDamage((int)w->getDamage());
+                        b->deactivate();
                         break;
                     }
                 }
@@ -423,7 +427,7 @@ public:
         mousePressedBefore = mousePressedNow;
 		//=============================Melee Attack============================================
         if (Keyboard::isKeyPressed(Keyboard::V)) {
-            processMelee();
+        //   processMelee();
         }
 		//============================Enemy Logic===============================================
         float dt = 0.016f;
@@ -438,6 +442,9 @@ public:
                 float groundY = survival.verticalCollision(
                     activeEnemies[i]->getPosition().x,
                     activeEnemies[i]->getPosition().y,
+
+
+
                     activeEnemies[i]->getWidth(),
                     activeEnemies[i]->getHeight(),
                     activeEnemies[i]->getVelocityY()

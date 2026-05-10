@@ -27,6 +27,9 @@ public:
 	virtual void setProjectileTexture(const Texture& tex) {
 		projectileTex = tex;
 	}
+	virtual int getTotalAmmo() const { return 0; }
+	virtual StraightProjectile* getBulletPtr(int i) { return nullptr; }
+	virtual float getDamage() const { return damage; }
 
 	struct EnemyHitbox {
 		float x, y, w, h;
@@ -35,6 +38,7 @@ public:
 	virtual ~Weapon() {}
 
 	virtual int checkBulletHit(EnemyHitbox* boxes, int count) { return -1; }
+
 };
 
 class ProjectileWeapon : public Weapon {
@@ -50,9 +54,9 @@ public:
 	ProjectileWeapon(int maxP, float sp) : totalAmmo(maxP), projectileSpeed(sp), bullets(NULL){
 		bullets = new StraightProjectile[totalAmmo];
 	}
-	int getTotalAmmo() const { return totalAmmo; }
-	StraightProjectile& getBullet(int i) { return bullets[i]; }
-	float getDamage() const { return damage; }
+	int getTotalAmmo() const override { return totalAmmo; }
+	StraightProjectile* getBulletPtr(int i) override { return &bullets[i]; }
+	float getDamage() const override { return damage; }
 	
 
     void updateBullets(float dt, Survival& level, int screenW, int screenH) override {
@@ -85,9 +89,12 @@ public:
 			return;
 		}
 		for (int i = 0; i < totalAmmo; ++i) {
+
 			if (!bullets[i].isActive()) {
+
 				bullets[i].activate(ammoTex, startPos, projectileSpeed * dirX, projectileSpeed * dirY, (int)damage, projectileScaleX, projectileScaleY);
 				fireCooldown = 0; // Reset cooldown after firing
+
 				break;
 			}
 		}
@@ -107,12 +114,17 @@ public:
 
     ProjectileWeapon(const ProjectileWeapon& other) : Weapon(other) {
         totalAmmo = other.totalAmmo;
+
         projectileSpeed = other.projectileSpeed;
+
         projectileScaleX = other.projectileScaleX;
+
         projectileScaleY = other.projectileScaleY;
+
         ammoTex = other.ammoTex;
 
         bullets = new StraightProjectile[totalAmmo];
+
         for (int i = 0; i < totalAmmo; i++) {
             bullets[i] = other.bullets[i];
         }
@@ -263,15 +275,22 @@ public:
 	FirePool() : radius(192.f), timeLeft(0.f),damageCooldown(0.f), damageInterval(0.25f),damage(3) {
 		active = false;
 		tex.loadFromFile("Data/items/flame.png");
+
 		sprite.setTexture(tex);
+
 		float diameter = radius * 2.f;
+
 		sprite.setScale(diameter / tex.getSize().x, 1.0f);
+
 	}
 
 	void spawn(Position pos) {
 		position = pos;
+
 		timeLeft = 10.f;
+
 		damageCooldown = 0.f;
+
 		active = true;
 		// centre the sprite on the explosion point
 		sprite.setPosition(position.x - radius, position.y - radius);
@@ -297,9 +316,14 @@ public:
 	//check if a point is within the pool radius, used for checking if enemy is standing in it
 	bool contains(float px, float py) const {
 		if (!active) return false;
+
 		float dx = px - position.x;
+
 		float dy = py - position.y;
+
 		return (dx * dx + dy * dy) <= (radius * radius);
+
+
 	}
 
 	void draw(RenderWindow& window, float cameraOffset) {
@@ -319,9 +343,13 @@ class GrenadeWeapon : public Weapon {
 protected:
 	const float BLAST_RADIUS;   // 3 * 64 = 192 px  
 	static const int MAX_GRENADES = 10;   // max inflight at once
+
 	BallisticProjectile grenades[MAX_GRENADES];
+
 	Texture grenadeTex;
 	float throwSpeed;
+
+
 	int maxThrows;        // total grenades the character carries
 	int throwsLeft;       // remaining count
 public:
@@ -333,7 +361,10 @@ public:
 
 	int  getThrowsLeft() const { return throwsLeft; }
 	int  getMaxThrows() const { return maxThrows; }
-	float getBlastRadius() const { return BLAST_RADIUS; }
+	float getBlastRadius() const { return BLAST_RADIUS; 
+	
+	}
+
 	
 	BlastEvent blasts[MAX_GRENADES];  
 
@@ -416,6 +447,7 @@ public:
 			if (!blasts[i].pending) {
 				blasts[i].center = blastCenter;
 				blasts[i].pending = true;
+
 				break;
 			}
 		}
@@ -425,7 +457,9 @@ public:
 class FireBombGrenade : public GrenadeWeapon {
 public:
 	static const int MAX_POOLS = 10;
+
 	FirePool pools[MAX_POOLS];
+
 
 	FireBombGrenade(int throws = 10) : GrenadeWeapon(600.0f, throws) {
 		grenadeTex.loadFromFile("Data/items/firegrenade.png");
@@ -434,7 +468,9 @@ public:
 	}
 	void updateBullets(float dt, Survival& level,int screenW, int screenH) override {
 		GrenadeWeapon::updateBullets(dt, level, screenW, screenH);
+
 		for (int p = 0; p < MAX_POOLS; p++)
+
 			pools[p].update(dt);
 	}
 
@@ -452,7 +488,9 @@ public:
 	void onExplode(Position blastCenter, Survival& level) override{
 		for (int i = 0; i < MAX_GRENADES; i++) {
 			if (!blasts[i].pending) {
+
 				blasts[i].center = blastCenter;
+
 				blasts[i].pending = true;
 				break;
 			}
@@ -462,6 +500,7 @@ public:
 		for (int p = 0; p < MAX_POOLS; p++) {
 			if (!pools[p].isActive()) {
 				pools[p].spawn(blastCenter);
+
 				break;
 			}
 		}
@@ -488,7 +527,10 @@ class MeleeWeapon : public Weapon {
 private:
 	Sprite slashSprite;
 	Texture slashTexture;
+
+
 	bool slashing;
+
 	float slashTimer;
 	float slashDuration;
 	float range;        // how far the slash reaches in pixels
@@ -500,14 +542,21 @@ public:
 		fireRate = 2.0f;   // max 2 slashes/sec
 		fireCooldown = 999.f; 
 		slashTexture.loadFromFile("Data/items/knife_slash.png");
+
+
 		slashSprite.setTexture(slashTexture);
+
 		slashSprite.setScale(0.15f, 0.15f);
 		
 	}
 	//returns true if slash started successfully, false if still on cooldown
 	bool swing(Position startPos, float dirX) {
 		if (fireCooldown < 1.0f / fireRate) return false;
+
+
 		slashSprite.setPosition(startPos.x + dirX * 20.f - 32.f, startPos.y);
+
+
 		slashing = true;
 		slashTimer = slashDuration;
 		fireCooldown = 0.f;
@@ -519,8 +568,13 @@ public:
 
 	void attack(Position, float, float, float) override {}
 	void attackDirect(Position, float, float)  override {}
+
+
 	void updateBullets(float dt, Survival&, int, int) override {
+
 		fireCooldown += dt;
+
+
 		if (!slashing) return;
 		slashTimer -= dt;
 		if (slashTimer <= 0.f) slashing = false;

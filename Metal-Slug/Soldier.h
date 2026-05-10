@@ -23,6 +23,9 @@ protected:
 	int facingDir;	// 1 for right, -1 for left
 	bool onGround;
 	float terminal_velocity;
+
+
+
 	float max_speed;
 	float velocityX = 0;
 	float velocityY = 0;
@@ -99,6 +102,8 @@ public:
 
 	bool setTextureFromFile(const char* path) {
 		if (!tex.loadFromFile(path)) return false;
+
+
 		setSprite(tex);
 
 		Position texSize;
@@ -127,6 +132,8 @@ public:
 		if (corrected < nextY) {  
 			position.y = corrected;
 			velocityY = 0;
+
+
 			onGround = true;
 		}
 		else {

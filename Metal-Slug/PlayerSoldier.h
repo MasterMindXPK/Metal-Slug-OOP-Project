@@ -21,6 +21,10 @@ protected:
 	void setState(){}
 	//void boardVehicle(playerVehicle*){}
 	//void ejectVehicle(playerVehicle*){}
+
+
+
+
 	Clock specialMoveTimer;
 	bool specialMoveActive;
 
