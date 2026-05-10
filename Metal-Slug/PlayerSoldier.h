@@ -13,6 +13,7 @@ protected:
 	Weapon* ownPistol;
 	Weapon* equippedWeapon;
 	GrenadeWeapon* ownGrenade;
+	MeleeWeapon* knife;
 	bool activeState;
 	void throwGrenade() {}
 	void meleeAttack(){}
@@ -30,12 +31,20 @@ public:
 		specialMoveActive = false;
 		activeState = true;
 		ownGrenade = WeaponFactory::createHandGrenade(10);	//10 grenades by default
+		knife = WeaponFactory::createMeleeKnife();
 	}
 	~PlayerSoldier() {
 		delete ownPistol;
 		delete ownGrenade;
+		delete knife;
 	}
 	void equipWeapon(Weapon* w) {
+		equippedWeapon = w;
+	}
+	void equipWeaponDev(Weapon* w) {
+		if (equippedWeapon != ownPistol) {
+			delete equippedWeapon;
+		}
 		equippedWeapon = w;
 	}
 	void dropWeapon(Weapon* w) {
@@ -62,7 +71,9 @@ public:
 	void drawGrenade(RenderWindow& window, float cameraOffset) {
 		ownGrenade->drawBullets(window, cameraOffset);
 	}
-
+	bool swingKnife(Position pos, float dirX) {
+		return knife->swing(pos, dirX);
+	}
 	// Getters
 	int getGrenadeCount() const { return grenadeCount; }
 	bool isActive() const { return activeState; }
@@ -70,6 +81,7 @@ public:
 	bool getSpecialMoveActive() { return specialMoveActive; }
 	Weapon* getActiveWeapon() const { return equippedWeapon; }
 	GrenadeWeapon* getGrenade() const { return ownGrenade; }
+	MeleeWeapon* getKnife() const { return knife; }
 	// Setters
 	void setActiveState(bool state) { activeState = state; }
 

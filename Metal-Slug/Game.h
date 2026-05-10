@@ -9,6 +9,7 @@
 #include "Enemy.h"
 #include "Spawn.h"
 #include "Weapon.h"
+#include "DeveloperMode.h"
 using namespace sf;
 
 class Game {
@@ -124,6 +125,31 @@ private:
                         activeEnemies[e]->takeDamage(5);
                 }
             }
+        }
+    }
+    //=========================KNIFE==========================
+    void processMelee() {
+        Position pos;
+        if (Soldier.getFacingDir() == 1) pos.x = Soldier.getPosition().x + Soldier.getWidth() / 2.0f;
+        else pos.x = Soldier.getPosition().x - Soldier.getWidth() / 2.0f - 20;
+        pos.y = Soldier.getPosition().y + Soldier.getHeight() / 2.f;
+        float dirX = Soldier.getFacingDir();
+
+        if (!currentPlayer->swingKnife(pos, dirX)) return; // on cooldown
+
+        float range = currentPlayer->getKnife()->getRange();
+        int   dmg = currentPlayer->getKnife()->getMeleeDamage();
+
+        for (int e = 0; e < enemyCount; e++) {
+            if (!activeEnemies[e]) continue;
+            float ex = activeEnemies[e]->getPosition().x + activeEnemies[e]->getWidth() / 2.f;
+            float ey = activeEnemies[e]->getPosition().y + activeEnemies[e]->getHeight() / 2.f;
+            float dx = ex - pos.x;
+            float dy = ey - pos.y;
+            // Only hit enemies in the direction the player is facing
+            if (dx * dirX < 0) continue;  // enemy is behind the player
+            if (dx * dx + dy * dy <= range * range)
+                activeEnemies[e]->takeDamage(dmg);
         }
     }
 
@@ -242,11 +268,43 @@ public:
                 }
                 else if (Keyboard::isKeyPressed(Keyboard::G)) {
                     Position spawn;
-                    spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
+                    if(Soldier.getFacingDir() == 1) spawn.x = Soldier.getPosition().x + Soldier.getWidth()/2.0f; 
+					else spawn.x = Soldier.getPosition().x - Soldier.getWidth()/2.0f -20; 
+                    
                     spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
                     currentPlayer->throwGrenade(spawn, aimDirX, aimDirY);
                 }
-                
+                else if(Keyboard::isKeyPressed(Keyboard::P)) {
+                    DeveloperMode::toggle();
+			    }
+                else if(Keyboard::isKeyPressed(Keyboard::Num1)) {
+                    if(DeveloperMode::isActive())
+				        currentPlayer->dropWeapon(currentPlayer->getActiveWeapon());
+			    }
+                else if (Keyboard::isKeyPressed(Keyboard::Num2)){
+                    if (DeveloperMode::isActive()) {
+                        Weapon* w = WeaponFactory::createMachineGun();
+                        currentPlayer->equipWeapon(w);
+                    }
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::Num3)) {
+                    if (DeveloperMode::isActive()) {
+                        Weapon* w = WeaponFactory::createRocketLauncher();
+                        currentPlayer->equipWeapon(w);
+                    }
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::Num4)) {
+                    if (DeveloperMode::isActive()) {
+                        Weapon* w = WeaponFactory::createFlameshot();
+                        currentPlayer->equipWeapon(w);
+                    }
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::Num5)) {
+                    if (DeveloperMode::isActive()) {
+                        Weapon* w = WeaponFactory::createLaserGun();
+                        currentPlayer->equipWeapon(w);
+                    }
+                }
         }
     }
 
@@ -289,6 +347,7 @@ public:
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
 			soldiers[i]->updateGrenade(0.016f, survival, screenW, screenH);
+            currentPlayer->getKnife()->updateBullets(0.016f, survival, screenW, screenH);
         }
 
         //============================Shooting===============================================
@@ -314,7 +373,8 @@ public:
         bool mousePressedNow = Mouse::isButtonPressed(Mouse::Left);
         if (mousePressedNow) {
             Position spawn;
-            spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
+            if (Soldier.getFacingDir() == 1) spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2.0f;
+            else spawn.x = Soldier.getPosition().x - Soldier.getWidth() / 2.0f - 20;
             spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
             currentPlayer->shoot(spawn, aimDirX, aimDirY);
         }
@@ -322,7 +382,10 @@ public:
             currentPlayer->getActiveWeapon()->stopFiring();
         }
         mousePressedBefore = mousePressedNow;
-        
+		//=============================Melee Attack============================================
+        if (Keyboard::isKeyPressed(Keyboard::V)) {
+            processMelee();
+        }
 		//============================Enemy Logic===============================================
         float dt = 0.016f;
         float playerX = Soldier.getPosition().x;
@@ -373,6 +436,7 @@ public:
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->drawBullets(window, camera.getCameraOffset());
 			soldiers[i]->drawGrenade(window, camera.getCameraOffset());
+            currentPlayer->getKnife()->drawBullets(window, camera.getCameraOffset());
             // draw fire pools
             int poolCount = 0;
             FirePool* pools = soldiers[i]->getGrenade()->getFirePools(poolCount);
@@ -388,7 +452,7 @@ public:
             }
         }
 
-        window.draw(Soldier.getSprite());
+		Soldier.draw(window);
         window.display();
     }
 

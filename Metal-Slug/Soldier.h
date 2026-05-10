@@ -20,7 +20,7 @@ protected:
 	const float gravity;// Gravity acceleration
 	bool isJumping; // Track if jumping
 	bool isMoving;
-	float facingDir;	// 1 for right, -1 for left
+	int facingDir;	// 1 for right, -1 for left
 	bool onGround;
 	float terminal_velocity;
 	float max_speed;
@@ -36,13 +36,12 @@ public:
 		position.y = 22;
 		isJumping = false;
 		isMoving = false;
-		facingDir = 1.0f; // 1 for right, -1 for left
+		facingDir = 1; // 1 for right, -1 for left
 		onGround = true;
 		hitBox.height = height;
 		hitBox.width = width;
 		hitBox.left = 7;
 		hitBox.top = 1138;
-		
 
 	}
 
@@ -52,14 +51,14 @@ public:
 			if (velocityX < 0)	velocityX = 0;
 			velocityX += acceleration;
 			if (velocityX > max_speed) velocityX = max_speed;
-			facingDir = 1.0f;
+			facingDir = 1;
 		}
 		else if (Keyboard::isKeyPressed(Keyboard::A))
 		{
 			if (velocityX > 0)	velocityX = 0;
 			velocityX -= acceleration;
 			if (velocityX < -max_speed) velocityX = -max_speed;
-			facingDir = -1.0f;	
+			facingDir = -1;	
 		}
 		else
 		{
@@ -74,6 +73,11 @@ public:
 	}
 
 	void draw(RenderWindow& window) override {
+		if(facingDir == -1) {
+			sprite.setScale(-std::abs(sprite.getScale().x), sprite.getScale().y); //
+		} else {
+			sprite.setScale(std::abs(sprite.getScale().x), sprite.getScale().y); 
+		}	
 		window.draw(sprite);
 	}
 
