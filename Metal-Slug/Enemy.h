@@ -3,6 +3,7 @@
 #include "Weapon.h"
 #include "Survival.h"
 #include "Soldier.h"
+#include <cmath>
 
 class Enemy : virtual public DamageableEntity {
 protected:
@@ -19,7 +20,7 @@ protected:
     bool onGround;
 
 public:
-    virtual void attack(float dt, float playerX) = 0;
+
 
     void applyGravity(float gravityMultiplier = 1.0f) {
         if (!onGround) {
@@ -42,7 +43,7 @@ public:
         }
     }
 
-    Enemy(int sp =3) : speed(sp), velocityX(sp), velocityY(0), width(50), height(70), gravity(1.0f), terminal_velocity(20.0f), onGround(false) {
+    Enemy(int sp = 3) : speed(sp), velocityX(sp), velocityY(0), width(50), height(70), gravity(1.0f), terminal_velocity(20.0f), onGround(false) {
         facing_left = false;
         facing_right = true;
         debugShape.setSize(Vector2f(width, height));
@@ -70,7 +71,7 @@ public:
             position.x = nextX;
         }
     }
-
+    virtual void attack(float dt, float playerX) = 0;
     virtual Enemy* clone() const = 0;
     virtual ~Enemy() {}
     virtual void die() = 0;
@@ -80,7 +81,6 @@ public:
     virtual void updateProjectiles(float dt, Survival& map, int screenW, int screenH) {}
     virtual void drawProjectiles(RenderWindow& window, float cameraOffset) {}
 };
-
 
 class Infantry : public Enemy {
 protected:
@@ -123,13 +123,7 @@ public:
         Position spawn;
         spawn.x = position.x + (width / 2.0f);
         spawn.y = position.y + (height / 2.0f);
-
-
-
         pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 1.0f);
-
-        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 0.0f, 1.0f); 
-
     }
 
     void updateProjectiles(float dt, Survival& map, int screenW, int screenH) override {
@@ -141,18 +135,6 @@ public:
     }
     void die() override {}
     Enemy* clone() const override { return new Rebel(*this); }
-};
-
-class GrenadeSoldier : public Infantry {
-public:
-    GrenadeSoldier(int hp = 2, int sp = 4, float r = 250.f)
-        : DamageableEntity(hp), Infantry(hp, sp, r) {
-        setDebugColor(Color::Green);
-    }
-
-    void attack(float dt, float playerX) override {}
-    void die() override {}
-    Enemy* clone() const override { return new GrenadeSoldier(*this); }
 };
 
 class ShieldedSoldier : public Infantry {
@@ -189,14 +171,23 @@ public:
     Enemy* clone() const override { return new ShieldedSoldier(*this); }
 };
 
+class GrenadeSoldier : public Infantry {
+public:
+    GrenadeSoldier(int hp = 2, int sp = 4, float r = 250.f)
+        : DamageableEntity(hp), Infantry(hp, sp, r) {
+        setDebugColor(Color::Green);
+    }
+    void attack(float dt, float playerX) override {}
+    void die() override {}
+    Enemy* clone() const override { return new GrenadeSoldier(*this); }
+};
+
 class BazookaSoldier : public Infantry {
 public:
     BazookaSoldier(int hp = 2, int sp = 3, float r = 350.f)
         : DamageableEntity(hp), Infantry(hp, sp, r) {
         setDebugColor(Color::Black);
     }
-
-    // Clean slate for your partner!
     void attack(float dt, float playerX) override {}
     void die() override {}
     Enemy* clone() const override { return new BazookaSoldier(*this); }

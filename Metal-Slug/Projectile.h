@@ -1,7 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "Entity.h"
 using namespace sf;
-#include "Utility.h"
+
 
 class Projectile : public Entity {
 private:
@@ -31,6 +32,8 @@ public:
         position.x += velocityX * dt;
         sprite.setPosition(position.x, position.y);
     }
+
+    Position getPosition() const { return position; }
 
     void draw(RenderWindow& window) override {
         if (!active) return;

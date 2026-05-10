@@ -4,11 +4,11 @@
 #include "Survival.h"
 #include "Soldier.h"
 #include "PlayerSoldier.h"
-#include "Weapon.h"
+
 #include "Projectile.h"
 #include "Enemy.h"
 #include "Spawn.h"
-
+#include "Weapon.h"
 using namespace sf;
 
 class Game {
@@ -194,11 +194,12 @@ public:
                     currentPlayer->specialMove();
                 }
                 else if (Keyboard::isKeyPressed(Keyboard::Space)) {
-                    Position spawn;
-                    spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
-                    spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-				    currentPlayer->shoot(spawn);
-                }
+                Position spawn;
+                spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
+                spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
+                // Pass spawn, DirX (1.0 for right), and DirY (0.0 for straight)
+                currentPlayer->shoot(spawn, 1.0f, 0.0f);
+            }
                 
         }
     }
@@ -247,10 +248,20 @@ public:
             Position spawn;
             spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
             spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
+
+            // DECLARE THESE BEFORE USING
+            Vector2i mousePos = Mouse::getPosition(window);
+            float aimDirX = (mousePos.x > Soldier.getScreenX(camera)) ? 1.0f : -1.0f;
+            float aimDirY = 0.0f;
+
             currentPlayer->shoot(spawn, aimDirX, aimDirY);
         }
+        else {
+            currentPlayer->getActiveWeapon()->stopFiring();
+        }
 
-
+        float dt = 0.016f;
+        float playerX = Soldier.getPosition().x;
         for (int i = 0; i < maxEnemies; i++) {
             if (activeEnemies[i] != nullptr) {
                 activeEnemies[i]->randomMoveX();
@@ -268,7 +279,7 @@ public:
 
                 activeEnemies[i]->applyVerticalCollision(groundY, nextY);
 
-                // --- FIXED: Now passing dt and playerX to the enemies! ---
+                // Now dt and playerX actually exist to be passed in!
                 activeEnemies[i]->attack(dt, playerX);
 
                 activeEnemies[i]->updateProjectiles(0.016f, survival, screenW, screenH);
