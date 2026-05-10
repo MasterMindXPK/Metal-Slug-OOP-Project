@@ -82,6 +82,8 @@ public:
 	
 	void generatePeakSeg(int startCol, int endCol, int& groundRow) {
 		int hillPeak = height - (6 + rand() % 4);  // higher
+
+
 		int trenchMin = height - (4 + rand() % 3);
 		int idx = 0, progress = 0;
 
@@ -113,6 +115,8 @@ public:
 		int trenchMin = height - (3 + rand() % 2);
 
 		int slopePattern[4] = { 0, 1, 0, -1 };
+
+
 		int idx = 0;
 		int progress = 0;
 
@@ -151,7 +155,12 @@ public:
 			int startCol = seg * segLen;
 			int endCol = (seg + 1) * segLen;
 
+
+
+
 			if (count==0) {
+
+
 				generateAquaticSeg(startCol, endCol, groundRow);
 			}
 			else if (count == 1) {

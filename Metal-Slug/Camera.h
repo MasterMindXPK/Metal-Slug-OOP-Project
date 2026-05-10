@@ -14,6 +14,9 @@ public:
 
 
         if (screenX > maxScreenX) cameraOffset = SoldierWorldX - maxScreenX;
+
+
+
         else if (screenX < minScreenX) cameraOffset = SoldierWorldX - minScreenX;
     }
 
@@ -30,6 +33,8 @@ public:
     int worldToScreenY(float worldY) { return (int)worldY; }
 
     bool isVisible(float worldX, float width) {
+
+
         float screenX = worldX - cameraOffset;
         return ((screenX + width > 0) && (screenX < screenWidth));
     }

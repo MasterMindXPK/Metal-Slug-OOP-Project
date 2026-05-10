@@ -109,6 +109,8 @@ public:
         if (correctedX != nextX) {
             velocityX = -velocityX;
             facing_left = !facing_left;
+
+
             facing_right = !facing_right;
             position.x = correctedX;
         }
