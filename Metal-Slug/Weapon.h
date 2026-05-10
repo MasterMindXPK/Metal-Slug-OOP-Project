@@ -4,7 +4,7 @@
 using namespace sf;
 #include "Projectile.h"
 
-class Weapon {
+class Weapon: public Entity {
 protected:
 	float fireRate;
 	float fireCooldown;
@@ -36,7 +36,7 @@ public:
 	ProjectileWeapon(int maxP, float sp) : totalAmmo(maxP), projectileSpeed(sp), bullets(NULL){
 		bullets = new StraightProjectile[totalAmmo];
 	}
-	//void setProjectileTexture(Texture& tex) { projectileTexture = &tex;	sprite.setScale(20.0f, 20.0f);}
+	//void setammoTex(Texture& tex) { ammoTex = &tex;	sprite.setScale(20.0f, 20.0f);}
 
     void updateBullets(float dt, Survival& level, int screenW, int screenH) override {
         Weapon::update(dt);
@@ -93,9 +93,9 @@ public:
         projectileSpeed = other.projectileSpeed;
         projectileScaleX = other.projectileScaleX;
         projectileScaleY = other.projectileScaleY;
-        projectileTexture = other.projectileTexture;
+        ammoTex = other.ammoTex;
 
-        bullets = new Projectile[totalAmmo];
+        bullets = new StraightProjectile[totalAmmo];
         for (int i = 0; i < totalAmmo; i++) {
             bullets[i] = other.bullets[i];
         }
@@ -109,8 +109,8 @@ public:
             projectileSpeed = other.projectileSpeed;
             projectileScaleX = other.projectileScaleX;
             projectileScaleY = other.projectileScaleY;
-            projectileTexture = other.projectileTexture;
-            bullets = new Projectile[totalAmmo];
+            ammoTex = other.ammoTex;
+            bullets = new StraightProjectile[totalAmmo];
             for (int i = 0; i < totalAmmo; i++) {
                 bullets[i] = other.bullets[i];
             }
