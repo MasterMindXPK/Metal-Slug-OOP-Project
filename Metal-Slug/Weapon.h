@@ -4,7 +4,7 @@ using namespace sf;
 #include"Projectile.h"
 
 
-class Weapon {
+class Weapon: public Entity {
 protected: 
 	float fireRate;
 	float fireCooldown;
@@ -16,8 +16,8 @@ public:
 	bool canFire(float fireRateMultiplier) const { return fireCooldown >= 1.0f / (fireRate * fireRateMultiplier); }
 	Sprite& getSprite() { return sprite; }
 	void setPosition(float x, float y) { sprite.setPosition(x, y); }
-	virtual void attack(Position startPos, float dirX, float fireRateMultiplier) = 0;
-	virtual void attackDirect(Position startPos, float dirX) = 0;
+	virtual void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) = 0;
+	virtual void attackDirect(Position startPos, float dirX, float dirY) = 0;
 	virtual void update(float dt) { fireCooldown += dt; }
 	virtual void drawBullets(RenderWindow& window, float cameraOffset){ }
 	virtual void updateBullets(float dt, Survival& level, int screenW, int screenH) = 0;
@@ -79,23 +79,23 @@ public:
 		//std::cout << "weap drew" << std::endl;
 		for (int i = 0; i < totalAmmo; i++) bullets[i].draw(window, cameraOffset);
 	}
-	void attack(Position startPos, float dirX, float fireRateMultiplier) override {
+	void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) override {
 		if (!canFire(fireRateMultiplier) || !projectileTexture) {
 			std::cout << "cannot fire"; return;
 		}
 		for (int i = 0; i < totalAmmo; ++i) {
 			if (!bullets[i].isActive()) {
-				bullets[i].activate(*projectileTexture, startPos, projectileSpeed * dirX, 0.0f, (int)damage, projectileScaleX, projectileScaleY);
+				bullets[i].activate(*projectileTexture, startPos, projectileSpeed * dirX, projectileSpeed * dirY, (int)damage, projectileScaleX, projectileScaleY);
 				fireCooldown = 0; // Reset cooldown after firing
 				break;
 			}
 		}
 	}
-	void attackDirect(Position startPos, float dirX) override{ //for marco dual shooting
+	void attackDirect(Position startPos, float dirX, float dirY) override{ //for marco dual shooting
 		if (!projectileTexture) return;
 		for (int i = 0; i < totalAmmo; ++i) {
 			if (!bullets[i].isActive()) {
-				bullets[i].activate(*projectileTexture, startPos, projectileSpeed * dirX, 0.0f, (int)damage, projectileScaleX, projectileScaleY);
+				bullets[i].activate(*projectileTexture, startPos, projectileSpeed * dirX, projectileSpeed * dirY, (int)damage, projectileScaleX, projectileScaleY);
 				break;
 			}
 		}
@@ -113,12 +113,13 @@ public:
 	Pistol() : ProjectileWeapon(50, 1000.f) {
 		fireRate = 4.0f;
 		damage = 5;
-		setProjectileScale(20.0f, 20.0f);
+		setProjectileScale(0.25f, 0.25f);
 	}
 	void setProjectileTexture() override {
 		projectileTexture = new Texture();
 		projectileTexture->loadFromFile("Data/items/bullet.png");
 	}
+	void draw(RenderWindow& window) {}
 };
 
 class MachineGun : public ProjectileWeapon {
@@ -126,14 +127,14 @@ public:
 		MachineGun() : ProjectileWeapon(100, 1500.f) {
 			fireRate = 8.0f;
 			damage = 5;
-			setProjectileScale(20.0f, 20.0f);
+			setProjectileScale(0.25f, 0.25f);
 		}
 
 		void setProjectileTexture() override {
 			projectileTexture = new Texture();
 			projectileTexture->loadFromFile("Data/items/bullet.png");
 		}
-
+		void draw(RenderWindow& window) {}
 	
 };
 
@@ -149,73 +150,85 @@ public:
 			projectileTexture = new Texture();
 			projectileTexture->loadFromFile("Data/items/rocket.png");
 		}
+		void draw(RenderWindow& window) {}
 };
 class Flameshot : public Weapon {
 private:
-	RectangleShape flameShape;
+	Sprite flameSprite;
+	Texture* flameTexture;
 	bool firing;
 	float length;  // 5 blocks * 64px
 
 public:
 	Flameshot() : firing(false), length(5 * 64.0f) {
-		flameShape.setSize(Vector2f(length, 20.0f));
-		flameShape.setFillColor(Color(255, 100, 0, 200));
+		
 	}
 
-	void attack(Position startPos, float dirX, float fireRateMultiplier) override {
+	void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) override {
 		firing = true;
-		flameShape.setPosition(
-			dirX > 0 ? startPos.x : startPos.x - length,
-			startPos.y
-		);
+		flameSprite.setPosition(startPos.x, startPos.y);
 	}
 
 	void stopFiring() { firing = false; }
 
-	void attackDirect(Position startPos, float dirX) override {}
+	void attackDirect(Position startPos, float dirX, float dirY) override {}
 	void updateBullets(float dt, Survival& level, int screenW, int screenH) override {}
-	void setProjectileTexture() override {}
+	
+	void setProjectileTexture() override {
+		flameTexture = new Texture();
+		flameTexture->loadFromFile("Data/items/flame.png");
+		flameSprite.setTexture(*flameTexture);
+	}
 
 	void drawBullets(RenderWindow& window, float cameraOffset) override {
 		if (!firing) return;
-		RectangleShape temp = flameShape;
-		temp.setPosition(flameShape.getPosition().x - cameraOffset,
-			flameShape.getPosition().y);
-		window.draw(temp);
+		flameSprite.setPosition(flameSprite.getPosition().x - cameraOffset, flameSprite.getPosition().y - 10.0f);
+		window.draw(flameSprite);
 	}
+	void draw(RenderWindow& window) {}
 };
+
 
 class LaserGun : public Weapon {
 private:
-	RectangleShape laserShape;
+	Sprite laserSprite;
+	Texture* laserTexture;
 	bool firing;
+	float timer;
 
 public:
-	LaserGun() : firing(false) {
-		laserShape.setSize(Vector2f(0.f, 4.f));  // width set dynamically
-		laserShape.setFillColor(Color(255, 0, 0, 230));
-	}
+	LaserGun() : firing(false), timer(0.f) { fireRate = 1; }
 
-	void attack(Position startPos, float dirX, float fireRateMultiplier) override {
-		firing = true;
-		float width = dirX > 0 ? 1600.f - startPos.x : startPos.x;
-		laserShape.setSize(Vector2f(width, 4.f));
-		laserShape.setPosition(
-			dirX > 0 ? startPos.x : 0.f,
-			startPos.y
-		);
+	void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) override {
+		if (!firing) {
+			firing = true;
+			timer = fireRate;
+			laserSprite.setPosition(startPos.x, startPos.y);
+		}
 	}
 
 	void stopFiring() override { firing = false; }
 
-	void attackDirect(Position startPos, float dirX) override {}
-	void updateBullets(float dt, Survival& level, int screenW, int screenH) override {}
-	void setProjectileTexture() override {}
+	void attackDirect(Position startPos, float dirX, float dirY) override {}
+
+	void updateBullets(float dt, Survival& level, int screenW, int screenH) override {
+		if (!firing) return;
+		timer -= dt;
+		if (timer <= 0.f) stopFiring();
+	}
+
+	void setProjectileTexture() override {
+		laserTexture = new Texture();
+		laserTexture->loadFromFile("Data/items/laser.png");
+		laserSprite.setTexture(*laserTexture);
+	}
 
 	void drawBullets(RenderWindow& window, float cameraOffset) override {
 		if (!firing) return;
-		window.draw(laserShape);
+		laserSprite.setPosition(laserSprite.getPosition().x - cameraOffset, laserSprite.getPosition().y);
+		window.draw(laserSprite);
 	}
+	void draw(RenderWindow& window) {}
 };
 
 class WeaponFactory {

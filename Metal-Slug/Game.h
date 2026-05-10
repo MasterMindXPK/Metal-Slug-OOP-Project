@@ -44,6 +44,9 @@ private:
     Weapon* levelWeapons[MAX_LEVEL_WEAPONS];
     int levelWeaponCount = 0;
 
+    bool mousePressedBefore = false;
+	float aimFacingDir = 1.0f; //1 for right, -1 for left
+
 	Clock clock;
 
     const int screenW = 1600;
@@ -169,12 +172,12 @@ public:
                 else if (Keyboard::isKeyPressed(Keyboard::F)) {
                     currentPlayer->specialMove();
                 }
-                else if (Keyboard::isKeyPressed(Keyboard::Space)) {
+                /*else if (Mouse::isButtonPressed(Mouse::Left)) {
                     Position spawn;
                     spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
                     spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-				    currentPlayer->shoot(spawn);
-                }
+				    currentPlayer->shoot(spawn, 1.0f, 0.0f);
+                }*/
                 
         }
     }
@@ -244,15 +247,39 @@ public:
         for (int i = 0; i < NUM_CHARACTERS; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
         }
+
+        //============================Shooting===============================================
+		//---------------------------Aiming with Mouse----------------
+
+        int mouseDirY = Mouse::getPosition(window).y;
+        int mouseDirX = Mouse::getPosition(window).x;
+        float gunPosY = Soldier.getPosition().y + Soldier.getHeight()/2.0f;
+        float gunPosX = Soldier.getPosition().x + Soldier.getWidth()/2.0f - camera.getCameraOffset();
+		float dy = mouseDirY - gunPosY;
+		float dx = mouseDirX - gunPosX;
+
+        aimFacingDir = (dx >= 0.f) ? 1.0f : -1.0f;
+		float angle = std::atan2(-dy, (dx < 0 ? -dx : dx));        //using -dy because in SFML, Y axis is inverted 
+        if (angle < 0.0f) angle = 0.0f;
+        else if(angle > 3.141592f / 2.0f)  angle = 3.141592f / 2.0f;
+
+		float aimDirY = -std::sin(angle);                //again using -sin because of inverted Y axis
+        float aimDirX = aimFacingDir * std::cos(angle);
+
 		currentPlayer->updateSpecialMove();
-        if (Mouse::isButtonPressed(Mouse::Left)) {
+
+        bool mousePressedNow = Mouse::isButtonPressed(Mouse::Left);
+        if (mousePressedNow) {
             Position spawn;
             spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
             spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-            currentPlayer->getActiveWeapon()->attack(spawn, 1.0f, 1.f);
+            currentPlayer->shoot(spawn, aimDirX, aimDirY);
         }
-        else
-            currentPlayer->getActiveWeapon()->stopFiring();
+
+        if (!mousePressedNow && mousePressedBefore) {
+            currentPlayer->getActiveWeapon()->stopFiring();  // only on release
+        }
+        mousePressedBefore = mousePressedNow;
     }
 
     void render() {
@@ -269,11 +296,11 @@ public:
         window.draw(backgroundSprite);
         if (levelCleared) window.draw(levelClearText);
         survival.drawsurvival(window, camera.getCameraOffset());
-        window.draw(Soldier.getSprite());
         for (int i = 0; i < NUM_CHARACTERS; ++i) {
             soldiers[i]->getActiveWeapon()->drawBullets(window, camera.getCameraOffset());
         }
 
+        window.draw(Soldier.getSprite());
         window.display();
     }
 
