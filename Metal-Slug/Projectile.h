@@ -3,32 +3,23 @@
 using namespace sf;
 #include "Utility.h"
 
-
-class Projectile: public Entity{
-
+class Projectile : public Entity {
 private:
-   
     float velocityX;
-    float velocityY;
     int damage;
     bool active;
     const Texture* texture;
-    
 
 public:
-    Projectile(): velocityX(0),velocityY(0),
-        damage(1), active(false), texture(nullptr) {
-    }
+    Projectile() : velocityX(0), damage(1), active(false), texture(nullptr) {}
 
-   
-
-    void activate(const Texture& tex, Position startPos, float velX, float velY, int dmg, float scaleX = 1.0f, float scaleY = 1.0f) {
+    // REVERTED: No more velY or grav
+    void activate(const Texture& tex, Position startPos, float velX, int dmg, float scaleX = 1.0f, float scaleY = 1.0f) {
         texture = &tex;
         sprite.setTexture(*texture);
         sprite.setScale(scaleX, scaleY);
         position = startPos;
-        velocityX= velX;
-        velocityY = velY;
+        velocityX = velX;
         damage = dmg;
         active = true;
         sprite.setPosition(position.x, position.y);
@@ -36,8 +27,8 @@ public:
 
     void update(float dt) {
         if (!active) return;
+        // REVERTED: Only moves on the X axis now
         position.x += velocityX * dt;
-        position.y += velocityY * dt;
         sprite.setPosition(position.x, position.y);
     }
 

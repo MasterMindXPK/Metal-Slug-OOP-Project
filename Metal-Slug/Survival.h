@@ -52,6 +52,12 @@ public:
 		delete[] lvl;
 	}
 
+	bool hasReachedEnd(float playerX, int cellSize) const {
+		int col = static_cast<int>(playerX / cellSize);
+		return col >= (width - 1);
+	}
+
+
 	void generateAquaticSeg(int startCol, int endCol, int& groundRow) {
 		int hillPeak = height - (4 + rand() % 2);   
 		int trenchMin = height - (2 + rand() % 2);  
@@ -173,8 +179,9 @@ public:
 		{
 			for (int col = left_col; col <= right_col; col++)
 			{
-				if (col >= 0 && col < width && row < height && lvl[row][col] == 'g' || col >= 0 && col < width && row < height && lvl[row][col] == 's')
+				if (col >= 0 && col < width && row < height && lvl[row][col] == 'g' || col >= 0 && col < width && row < height && lvl[row][col] == 's') 
 					return row * cell_size - Pheight;
+				
 			}
 		}
 		return screenHeight - Pheight;
@@ -240,6 +247,7 @@ public:
 		return lvl[row][col] == 'a';
 	}
 
+
 	void drawsurvival(RenderWindow& window, float camera_x)
 	{
 		for (int i = 0; i < height; i ++)
@@ -268,7 +276,8 @@ public:
 	int getWidth() const { return width; }
 	int getCellSize() const { return cell_size; }
 
-	//========================================================
+
+
 	bool isSolid(float x, float y, float w, float h) const {
 		int left = (int)(x / cell_size);
 		int right = (int)((x + w - 1) / cell_size);
