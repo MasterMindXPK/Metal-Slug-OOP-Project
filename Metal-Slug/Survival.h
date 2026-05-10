@@ -14,6 +14,16 @@ private:
 	const int screenHeight;
 	const int screenWidth;
 	char** lvl;
+
+
+	Texture grassTex;
+	Texture aquaTex;
+	Texture stoneTex;
+	Sprite grassSpr;
+	Sprite aquaSpr;
+	Sprite stoneSpr;
+
+
 	
 
 	void allocateLvl() {
@@ -28,13 +38,7 @@ private:
 		}
 	}
 
-	Texture grassTex;
-	Texture aquaTex;
-	Texture stoneTex;
-	Sprite grassSpr;
-	Sprite aquaSpr;
-	Sprite stoneSpr;
-	
+
 public:
 	Survival(int height, int width, int cell_size, int scrHeight, int scrWidth): height(height), width(width), cell_size(cell_size),lvl(nullptr), screenHeight(scrHeight), screenWidth(scrWidth) {
 		allocateLvl();
@@ -69,6 +73,7 @@ public:
 			
 		}
 	}
+	
 	void generatePeakSeg(int startCol, int endCol, int& groundRow) {
 		int hillPeak = height - (6 + rand() % 4);  // higher
 		int trenchMin = height - (4 + rand() % 3);

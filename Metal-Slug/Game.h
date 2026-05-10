@@ -6,7 +6,8 @@
 #include "PlayerSoldier.h"
 #include "Weapon.h"
 #include "Projectile.h"
-
+#include "Enemy.h"
+#include "Spawn.h"
 
 using namespace sf;
 
@@ -25,8 +26,7 @@ private:
     Camera camera;
     Survival survival;
     Soldier Soldier;
-    
-    
+    Pistol pistol;
     Texture bulletTex;
     Sprite bulletSp;
     Texture backgroundTex;
@@ -36,9 +36,9 @@ private:
     const int clearDurationFrames = 120;
     Text levelClearText;
 
-    static const int NUM_CHARACTERS = 4;
+    static const int players= 4;
     int currentSoldierIndex;
-    PlayerSoldier* soldiers[NUM_CHARACTERS];
+    PlayerSoldier* soldiers[players];
     PlayerSoldier* currentPlayer;
     static const int MAX_LEVEL_WEAPONS = 20;
     Weapon* levelWeapons[MAX_LEVEL_WEAPONS];
@@ -48,6 +48,14 @@ private:
 	float aimFacingDir = 1.0f; //1 for right, -1 for left
 
 	Clock clock;
+
+    //Enemy Management:
+
+    static const int maxEnemies  = 150;
+    Enemy* activeEnemies[maxEnemies];
+    int enemyCount = 0;
+    EnemySpawn enemyManager;
+
 
     const int screenW = 1600;
     const int screenH = 900;
@@ -86,8 +94,8 @@ public:
     bool loadAssets() {
         //Player
         //if (!bulletTex.loadFromFile("Data/Items/bullet.png")) return false;
-        for (int i = 0; i < NUM_CHARACTERS; ++i) {
-            soldiers[i]->getActiveWeapon()->setProjectileTexture();
+        for (int i = 0; i < players; ++i) {
+            soldiers[i]->getActiveWeapon()->setProjectileTexture(bulletTex);
         }
 
 
@@ -244,7 +252,7 @@ public:
         /*for (int i = 0; i < NUM_CHARACTERS; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016);
         }*/
-        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+        for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
         }
 
@@ -280,6 +288,35 @@ public:
             currentPlayer->getActiveWeapon()->stopFiring();  // only on release
         }
         mousePressedBefore = mousePressedNow;
+
+        for (int i = 0;i < maxEnemies;i++) {
+            if (activeEnemies[i] != nullptr) {
+
+                activeEnemies[i]->randomMoveX();
+                activeEnemies[i]->detectCollision(survival);
+
+                activeEnemies[i]->applyGravity(1.0f); // Apply gravity acceleration first
+
+                float nextY = activeEnemies[i]->getPosition().y + activeEnemies[i]->getVelocityY();
+                float groundY = survival.verticalCollision(
+                    activeEnemies[i]->getPosition().x,
+                    activeEnemies[i]->getPosition().y,
+                    activeEnemies[i]->getWidth(),
+                    activeEnemies[i]->getHeight(),
+                    activeEnemies[i]->getVelocityY()
+                );
+
+                // Resolve the collision and set the final Y position
+                activeEnemies[i]->applyVerticalCollision(groundY, nextY);
+                activeEnemies[i]->attack();
+                activeEnemies[i]->attack();
+                activeEnemies[i]->updateProjectiles(0.016f, survival, screenW, screenH);
+                activeEnemies[i]->setSprPos(
+                    activeEnemies[i]->getPosition().x - camera.getCameraOffset(),
+                    activeEnemies[i]->getPosition().y
+                );
+            }
+        }
     }
 
     void render() {
@@ -296,8 +333,16 @@ public:
         window.draw(backgroundSprite);
         if (levelCleared) window.draw(levelClearText);
         survival.drawsurvival(window, camera.getCameraOffset());
-        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+        
+        for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->drawBullets(window, camera.getCameraOffset());
+
+        }
+        for (int i = 0; i < enemyCount; ++i) {
+            if (activeEnemies[i] != nullptr) {
+                activeEnemies[i]->draw(window);
+                activeEnemies[i]->drawProjectiles(window, camera.getCameraOffset());
+            }
         }
 
         window.draw(Soldier.getSprite());
@@ -313,6 +358,8 @@ public:
         window.setVerticalSyncEnabled(true);
         window.setFramerateLimit(60);
 
+
+        //player
         soldiers[0] = new Marco();
         soldiers[1] = new Tarma();
         soldiers[2] = new Eri();
@@ -320,18 +367,35 @@ public:
 
         currentPlayer = soldiers[currentSoldierIndex];
         Soldier.setTextureFromFile(currentPlayer->getTexturePath());
+
+        //enemies
+        for (int i = 0; i < maxEnemies; i++) {
+            activeEnemies[i] = nullptr;
+        }
+
+
     }
 
     ~Game() {
-        for (int i = 0; i < NUM_CHARACTERS; ++i) {
+        for (int i = 0; i < players; ++i) {
             delete soldiers[i];
             soldiers[i] = nullptr;
+
         }
+            for (int i = 0; i < enemyCount; ++i) {
+                if (activeEnemies[i] != nullptr) {
+                    delete activeEnemies[i];
+                    activeEnemies[i] = nullptr;
+                }
+            }
+        
     }
 
     void run() {
         (loadAssets()) ;
         survival.generateSurvival();
+        enemyManager.SpawnLocationCheck(survival);
+        enemyManager.spawnEnemies(survival, activeEnemies, enemyCount, maxEnemies);
 
         while (window.isOpen()) {
             handleEvents();

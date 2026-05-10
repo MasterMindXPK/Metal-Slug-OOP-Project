@@ -21,7 +21,7 @@ public:
 	virtual void update(float dt) { fireCooldown += dt; }
 	virtual void drawBullets(RenderWindow& window, float cameraOffset){ }
 	virtual void updateBullets(float dt, Survival& level, int screenW, int screenH) = 0;
-	virtual void setProjectileTexture() {}
+	virtual void setProjectileTexture(Texture& tex) {}
 	virtual void stopFiring() {}
 
 };
@@ -76,7 +76,7 @@ public:
 	}
 
 	void drawBullets(RenderWindow& window, float cameraOffset) override{
-		//std::cout << "weap drew" << std::endl;
+
 		for (int i = 0; i < totalAmmo; i++) bullets[i].draw(window, cameraOffset);
 	}
 	void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) override {
@@ -104,6 +104,7 @@ public:
 		projectileScaleX = scaleX;
 		projectileScaleY = scaleY;
 	}
+
 	~ProjectileWeapon() { delete[] bullets; }
 };
 
@@ -115,7 +116,7 @@ public:
 		damage = 5;
 		setProjectileScale(0.25f, 0.25f);
 	}
-	void setProjectileTexture() override {
+	void setProjectileTexture(Texture& tex) override {
 		projectileTexture = new Texture();
 		projectileTexture->loadFromFile("Data/items/bullet.png");
 	}
@@ -130,7 +131,7 @@ public:
 			setProjectileScale(0.25f, 0.25f);
 		}
 
-		void setProjectileTexture() override {
+		void setProjectileTexture(Texture& tex) override {
 			projectileTexture = new Texture();
 			projectileTexture->loadFromFile("Data/items/bullet.png");
 		}
@@ -146,7 +147,7 @@ public:
 		setProjectileScale(0.25f, 0.25f);
 		}
 
-		void setProjectileTexture() override {
+		void setProjectileTexture(Texture& tex) override {
 			projectileTexture = new Texture();
 			projectileTexture->loadFromFile("Data/items/rocket.png");
 		}
