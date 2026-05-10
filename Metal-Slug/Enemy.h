@@ -125,7 +125,11 @@ public:
         spawn.y = position.y + (height / 2.0f);
 
 
+
         pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 1.0f);
+
+        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 0.0f, 1.0f); 
+
     }
 
     void updateProjectiles(float dt, Survival& map, int screenW, int screenH) override {

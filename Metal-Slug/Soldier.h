@@ -20,8 +20,7 @@ protected:
 	const float gravity;// Gravity acceleration
 	bool isJumping; // Track if jumping
 	bool isMoving;
-	bool facing_left;
-	bool facing_right;
+	float facingDir;	// 1 for right, -1 for left
 	bool onGround;
 	float terminal_velocity;
 	float max_speed;
@@ -37,8 +36,7 @@ public:
 		position.y = 22;
 		isJumping = false;
 		isMoving = false;
-		facing_left = false;
-		facing_right = true;
+		facingDir = 1.0f; // 1 for right, -1 for left
 		onGround = true;
 		hitBox.height = height;
 		hitBox.width = width;

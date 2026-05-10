@@ -44,7 +44,7 @@ private:
     static const int MAX_LEVEL_WEAPONS = 20;
     Weapon* levelWeapons[MAX_LEVEL_WEAPONS];
     int levelWeaponCount = 0;
-    Clock clock;
+	Clock clock;
 
     //Enemy Management:
     static const int maxEnemies = 150;
@@ -124,10 +124,6 @@ public:
         );
 
         if (!backgroundTex.loadFromFile("Data/Backgrounds/Bg1.jpg")) return false;
-        if (!bulletTex.loadFromFile("Data/Items/bullet.png")) return false;
-        for (int i = 0; i < players; ++i) {
-            soldiers[i]->getActiveWeapon()->setProjectileTexture(bulletTex);
-        }
         backgroundSprite.setTexture(backgroundTex);
 
         unsigned int bgWidth = backgroundTex.getSize().x;
@@ -186,22 +182,24 @@ public:
             }
 
             if (Keyboard::isKeyPressed(Keyboard::Z)) {
-                currentSoldierIndex = (currentSoldierIndex + 1) % players;
-                currentPlayer = soldiers[currentSoldierIndex];
-                Soldier.setTextureFromFile(currentPlayer->getTexturePath());
-            }
-            else if (ev.key.code == Keyboard::Escape) {
-                window.close();
-            }
-            else if (Keyboard::isKeyPressed(Keyboard::F)) {
-                currentPlayer->specialMove();
-            }
-            else if (Keyboard::isKeyPressed(Keyboard::Space)) {
-                Position spawn;
-                spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
-                spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-                currentPlayer->shoot(spawn);
-            }
+                    currentSoldierIndex = (currentSoldierIndex + 1) % players;
+                    currentPlayer = soldiers[currentSoldierIndex];
+					Soldier.setTextureFromFile(currentPlayer->getTexturePath());
+                    
+                }
+                else if (ev.key.code == Keyboard::Escape) {
+                    window.close();
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::F)) {
+                    currentPlayer->specialMove();
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::Space)) {
+                    Position spawn;
+                    spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
+                    spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
+				    currentPlayer->shoot(spawn);
+                }
+                
         }
     }
 
@@ -209,6 +207,8 @@ public:
         bool inWater;
         float gravityStrength, speedMultiplier;
         if (state == GameState::Menu) return;
+
+
 
         inWater = survival.isWaterAt(Soldier.getPosition().x + Soldier.getWidth() * 0.5f, Soldier.getPosition().y + Soldier.getHeight() * 0.5f);
         if (inWater) {
@@ -242,20 +242,14 @@ public:
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
         }
-        currentPlayer->updateSpecialMove();
-
+		currentPlayer->updateSpecialMove();
         if (Mouse::isButtonPressed(Mouse::Left)) {
             Position spawn;
             spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
             spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-            currentPlayer->getActiveWeapon()->attack(spawn, 1.0f, 1.f);
+            currentPlayer->shoot(spawn, aimDirX, aimDirY);
         }
-        else
-            currentPlayer->getActiveWeapon()->stopFiring();
 
-        // --- NEW: Time and Space awareness for the Enemies! ---
-        float dt = 0.016f; // Standard 60 FPS delta time
-        float playerX = Soldier.getPosition().x;
 
         for (int i = 0; i < maxEnemies; i++) {
             if (activeEnemies[i] != nullptr) {
@@ -300,7 +294,6 @@ public:
         if (levelCleared) window.draw(levelClearText);
         survival.drawsurvival(window, camera.getCameraOffset());
         window.draw(Soldier.getSprite());
-
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->drawBullets(window, camera.getCameraOffset());
         }
@@ -312,6 +305,7 @@ public:
             }
         }
 
+        window.draw(Soldier.getSprite());
         window.display();
     }
 

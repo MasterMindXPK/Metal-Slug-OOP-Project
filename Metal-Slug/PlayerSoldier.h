@@ -23,7 +23,7 @@ protected:
 
 public:
 	PlayerSoldier() {
-		ownPistol = WeaponFactory::createRocketLauncher();
+		ownPistol = WeaponFactory::createPistol();
 		equippedWeapon = ownPistol;
 		specialMoveActive = false;
 		activeState = true;
@@ -42,9 +42,9 @@ public:
 		}
 	}
 
-	virtual void shoot(Position spawn) {
+	virtual void shoot(Position spawn, float dirX, float dirY) {
 
-		equippedWeapon->attack(spawn, 1.0f, getFireRateMultiplier());
+		equippedWeapon->attack(spawn, dirX, dirY, getFireRateMultiplier());
 		
 	}
 	// Getters
@@ -85,12 +85,12 @@ public:
 			specialMoveActive = false;
 		}
 	}
-	  
-	void shoot(Position spawn) override {
+
+	void shoot(Position spawn, float dirX, float dirY) override {
 		std::cout << "OVERRIDEN SHOOTING";
-		equippedWeapon->attack(spawn, 1.0f, getFireRateMultiplier());
+		equippedWeapon->attack(spawn, dirX, dirY, getFireRateMultiplier());
 		if (specialMoveActive) {
-			equippedWeapon->attackDirect(spawn, -1.0f); 
+			equippedWeapon->attackDirect(spawn, -dirX, dirY);
 		}
 	}
 };
