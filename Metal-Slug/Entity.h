@@ -6,12 +6,12 @@ using namespace sf;
 class Entity{
 protected:
 	Position position;
-	bool isActive;
+	bool active;
 	Sprite sprite;
     Texture tex;
 
 public:
-	Entity() :position{ 0.0f, 0.0f }, isActive(true) {}
+	Entity() :position{ 0.0f, 0.0f }, active(true) {}
 	virtual ~Entity() {}
     Entity(const Entity& other) {
         position = other.position;
@@ -37,5 +37,6 @@ public:
     void setSprite(const Texture& tex) {
         sprite.setTexture(tex);
     }
-    
+
+	bool isActive() const { return active; }
 };

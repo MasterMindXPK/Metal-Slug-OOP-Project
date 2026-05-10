@@ -44,6 +44,11 @@ private:
     static const int MAX_LEVEL_WEAPONS = 20;
     Weapon* levelWeapons[MAX_LEVEL_WEAPONS];
     int levelWeaponCount = 0;
+
+    float aimDirX;
+	float aimDirY;
+    bool mousePressedBefore = false;
+
 	Clock clock;
 
     //Enemy Management:
@@ -85,6 +90,43 @@ private:
         }
     }
 
+    //Grenade - Enemy Collision Management
+    void processGrenades() {
+        for (int i = 0; i < players; i++) {
+            GrenadeWeapon* g = soldiers[i]->getGrenade();
+
+            // blast damage
+            for (int j = 0; j < g->getMaxThrows(); j++) {
+                if (!g->blasts[j].pending) continue;
+                Position blast = g->blasts[j].center;
+                g->blasts[j].pending = false;
+
+                for (int e = 0; e < enemyCount; e++) {
+                    if (!activeEnemies[e]) continue;
+                    float dx = activeEnemies[e]->getPosition().x - blast.x;
+                    float dy = activeEnemies[e]->getPosition().y - blast.y;
+                    if (dx * dx + dy * dy <= g->getBlastRadius() * g->getBlastRadius())
+                        activeEnemies[e]->takeDamage(5);
+                }
+            }
+
+            // fire pool damage 
+            int poolCount = 0;
+            FirePool* pools = g->getFirePools(poolCount);
+            for (int p = 0; p < poolCount; p++) {
+                if (!pools[p].isActive())    continue;
+                if (!pools[p].canDamage()) continue;
+                for (int e = 0; e < enemyCount; e++) {
+                    if (!activeEnemies[e]) continue;
+                    float ex = activeEnemies[e]->getPosition().x + activeEnemies[e]->getWidth() / 2.f;
+                    float ey = activeEnemies[e]->getPosition().y + activeEnemies[e]->getHeight() / 2.f;
+                    if (pools[p].contains(ex, ey))
+                        activeEnemies[e]->takeDamage(5);
+                }
+            }
+        }
+    }
+
 public:
     void updateMenuColors() {
         for (int i = 0; i < 3; ++i) {
@@ -111,9 +153,7 @@ public:
     }
 
     bool loadAssets() {
-        for (int i = 0; i < players; ++i) {
-            soldiers[i]->getActiveWeapon()->setProjectileTexture(bulletTex);
-        }
+        
 
         //Background
         if (!menuBgTex.loadFromFile("Data/Backgrounds/Intro.jpg")) return false;
@@ -155,7 +195,6 @@ public:
 
     void handleEvents() {
         Event ev;
-
         while (window.pollEvent(ev)) {
             if (ev.type == Event::Closed) window.close();
 
@@ -187,8 +226,9 @@ public:
                 enterHeld = enterNow;
                 return;
             }
+            
 
-            if (Keyboard::isKeyPressed(Keyboard::Z)) {
+			if (ev.type == Event::KeyPressed && ev.key.code == Keyboard::Z) {
                     currentSoldierIndex = (currentSoldierIndex + 1) % players;
                     currentPlayer = soldiers[currentSoldierIndex];
 					Soldier.setTextureFromFile(currentPlayer->getTexturePath());
@@ -200,12 +240,12 @@ public:
                 else if (Keyboard::isKeyPressed(Keyboard::F)) {
                     currentPlayer->specialMove();
                 }
-                else if (Keyboard::isKeyPressed(Keyboard::Space)) {
-                Position spawn;
-                spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
-                spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-                currentPlayer->shoot(spawn, 1.0f, 0.0f);
-            }
+                else if (Keyboard::isKeyPressed(Keyboard::G)) {
+                    Position spawn;
+                    spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
+                    spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
+                    currentPlayer->throwGrenade(spawn, aimDirX, aimDirY);
+                }
                 
         }
     }
@@ -248,27 +288,45 @@ public:
 
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
+			soldiers[i]->updateGrenade(0.016f, survival, screenW, screenH);
         }
+
+        //============================Shooting===============================================
+		//---------------------------Aiming with Mouse----------------
+
+        int mouseDirY = Mouse::getPosition(window).y;
+        int mouseDirX = Mouse::getPosition(window).x;
+        float gunPosY = Soldier.getPosition().y + Soldier.getHeight()/2.0f;
+        float gunPosX = Soldier.getPosition().x + Soldier.getWidth()/2.0f - camera.getCameraOffset();
+		float dy = mouseDirY - gunPosY;
+		float dx = mouseDirX - gunPosX;
+
+        
+		float angle = std::atan2(-dy, (dx < 0 ? -dx : dx));        //using -dy because in SFML, Y axis is inverted 
+        if (angle < 0.0f) angle = 0.0f;
+        else if(angle > 3.141592f / 2.0f)  angle = 3.141592f / 2.0f;
+
+		aimDirY = -std::sin(angle);                //again using -sin because of inverted Y axis
+        aimDirX = Soldier.getFacingDir() * std::cos(angle);
+
 		currentPlayer->updateSpecialMove();
-        if (Mouse::isButtonPressed(Mouse::Left)) {
+
+        bool mousePressedNow = Mouse::isButtonPressed(Mouse::Left);
+        if (mousePressedNow) {
             Position spawn;
             spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
             spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-
-    
-            Vector2i mousePos = Mouse::getPosition(window);
-            float aimDirX = (mousePos.x > Soldier.getScreenX(camera)) ? 1.0f : -1.0f;
-            float aimDirY = 0.0f;
-
             currentPlayer->shoot(spawn, aimDirX, aimDirY);
         }
         else {
             currentPlayer->getActiveWeapon()->stopFiring();
         }
-
+        mousePressedBefore = mousePressedNow;
+        
+		//============================Enemy Logic===============================================
         float dt = 0.016f;
         float playerX = Soldier.getPosition().x;
-        for (int i = 0; i < maxEnemies; i++) {
+        for (int i = 0;i < maxEnemies;i++) {
             if (activeEnemies[i] != nullptr) {
                
                 activeEnemies[i]->detectCollision(survival);
@@ -285,7 +343,6 @@ public:
 
                 activeEnemies[i]->applyVerticalCollision(groundY, nextY);
 
-                // Now dt and playerX actually exist to be passed in!
                 activeEnemies[i]->attack(dt, playerX);
 
                 activeEnemies[i]->updateProjectiles(0.016f, survival, screenW, screenH);
@@ -295,6 +352,8 @@ public:
                 );
             }
         }
+        //===========================grenade================================
+		processGrenades();
     }
 
     void render() {
@@ -310,9 +369,15 @@ public:
         window.draw(backgroundSprite);
         if (levelCleared) window.draw(levelClearText);
         survival.drawsurvival(window, camera.getCameraOffset());
-        window.draw(Soldier.getSprite());
+        
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->drawBullets(window, camera.getCameraOffset());
+			soldiers[i]->drawGrenade(window, camera.getCameraOffset());
+            // draw fire pools
+            int poolCount = 0;
+            FirePool* pools = soldiers[i]->getGrenade()->getFirePools(poolCount);
+            for (int p = 0; p < poolCount; p++)
+                pools[p].draw(window, camera.getCameraOffset());
         }
 
         for (int i = 0; i < maxEnemies; ++i) {
