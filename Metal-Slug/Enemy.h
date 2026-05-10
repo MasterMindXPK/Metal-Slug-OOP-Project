@@ -136,7 +136,7 @@ public:
         Position spawn; 
         spawn.x = position.x + (width / 2.0f);
         spawn.y = position.y + (height / 2.0f);
-        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 0.0f); 
+        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 0.0f, 1.0f); 
     }
     void updateProjectiles(float dt, Survival& map, int screenW, int screenH) override {
         pistol.updateBullets(dt, map, screenW, screenH);
@@ -197,7 +197,7 @@ public:
         // Spawn from the center
         spawn.x = position.x + (width / 2.0f);
         spawn.y = position.y + (height / 2.0f);
-        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 0.0f);
+        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 0.0f, 1.0f);
     }
 
     void die() override {

@@ -4,22 +4,22 @@ using namespace sf;
 #include"Projectile.h"
 
 
-class Weapon: public Entity {
-protected: 
+class Weapon : public Entity {
+protected:
 	float fireRate;
 	float fireCooldown;
 	Texture texture;
 	Sprite sprite;
 	float damage;
 public:
-	Weapon(): fireCooldown(0){}
+	Weapon() : fireCooldown(0) {}
 	bool canFire(float fireRateMultiplier) const { return fireCooldown >= 1.0f / (fireRate * fireRateMultiplier); }
 	Sprite& getSprite() { return sprite; }
 	void setPosition(float x, float y) { sprite.setPosition(x, y); }
 	virtual void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) = 0;
 	virtual void attackDirect(Position startPos, float dirX, float dirY) = 0;
 	virtual void update(float dt) { fireCooldown += dt; }
-	virtual void drawBullets(RenderWindow& window, float cameraOffset){ }
+	virtual void drawBullets(RenderWindow& window, float cameraOffset) {}
 	virtual void updateBullets(float dt, Survival& level, int screenW, int screenH) = 0;
 	virtual void setProjectileTexture(Texture& tex) {}
 	virtual void stopFiring() {}
@@ -27,7 +27,7 @@ public:
 };
 
 
-class ProjectileWeapon: public Weapon{
+class ProjectileWeapon : public Weapon {
 
 protected:
 	Projectile* bullets;
@@ -72,16 +72,17 @@ public:
 			}
 		}
 
-		
+
 	}
 
-	void drawBullets(RenderWindow& window, float cameraOffset) override{
+	void drawBullets(RenderWindow& window, float cameraOffset) override {
 
 		for (int i = 0; i < totalAmmo; i++) bullets[i].draw(window, cameraOffset);
 	}
 	void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) override {
 		if (!canFire(fireRateMultiplier) || !projectileTexture) {
-			std::cout << "cannot fire"; return;
+			//std::cout << "cannot fire";
+			return;
 		}
 		for (int i = 0; i < totalAmmo; ++i) {
 			if (!bullets[i].isActive()) {
@@ -91,7 +92,7 @@ public:
 			}
 		}
 	}
-	void attackDirect(Position startPos, float dirX, float dirY) override{ //for marco dual shooting
+	void attackDirect(Position startPos, float dirX, float dirY) override { //for marco dual shooting
 		if (!projectileTexture) return;
 		for (int i = 0; i < totalAmmo; ++i) {
 			if (!bullets[i].isActive()) {
@@ -125,33 +126,33 @@ public:
 
 class MachineGun : public ProjectileWeapon {
 public:
-		MachineGun() : ProjectileWeapon(100, 1500.f) {
-			fireRate = 8.0f;
-			damage = 5;
-			setProjectileScale(0.25f, 0.25f);
-		}
+	MachineGun() : ProjectileWeapon(100, 1500.f) {
+		fireRate = 8.0f;
+		damage = 5;
+		setProjectileScale(0.25f, 0.25f);
+	}
 
-		void setProjectileTexture(Texture& tex) override {
-			projectileTexture = new Texture();
-			projectileTexture->loadFromFile("Data/items/bullet.png");
-		}
-		void draw(RenderWindow& window) {}
-	
+	void setProjectileTexture(Texture& tex) override {
+		projectileTexture = new Texture();
+		projectileTexture->loadFromFile("Data/items/bullet.png");
+	}
+	void draw(RenderWindow& window) {}
+
 };
 
 class RocketLauncher : public ProjectileWeapon {
 public:
-		RocketLauncher() : ProjectileWeapon(10, 800.f) {
+	RocketLauncher() : ProjectileWeapon(10, 800.f) {
 		fireRate = 0.5f;
 		damage = 20;
 		setProjectileScale(0.25f, 0.25f);
-		}
+	}
 
-		void setProjectileTexture(Texture& tex) override {
-			projectileTexture = new Texture();
-			projectileTexture->loadFromFile("Data/items/rocket.png");
-		}
-		void draw(RenderWindow& window) {}
+	void setProjectileTexture(Texture& tex) override {
+		projectileTexture = new Texture();
+		projectileTexture->loadFromFile("Data/items/rocket.png");
+	}
+	void draw(RenderWindow& window) {}
 };
 class Flameshot : public Weapon {
 private:
@@ -162,7 +163,7 @@ private:
 
 public:
 	Flameshot() : firing(false), length(5 * 64.0f) {
-		
+
 	}
 
 	void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) override {
@@ -174,8 +175,8 @@ public:
 
 	void attackDirect(Position startPos, float dirX, float dirY) override {}
 	void updateBullets(float dt, Survival& level, int screenW, int screenH) override {}
-	
-	void setProjectileTexture() override {
+
+	void setProjectileTexture() {
 		flameTexture = new Texture();
 		flameTexture->loadFromFile("Data/items/flame.png");
 		flameSprite.setTexture(*flameTexture);
@@ -218,7 +219,7 @@ public:
 		if (timer <= 0.f) stopFiring();
 	}
 
-	void setProjectileTexture() override {
+	void setProjectileTexture() {
 		laserTexture = new Texture();
 		laserTexture->loadFromFile("Data/items/laser.png");
 		laserSprite.setTexture(*laserTexture);

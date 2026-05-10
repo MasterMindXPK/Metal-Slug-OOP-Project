@@ -169,7 +169,7 @@ public:
             
 
 			if (ev.type == Event::KeyPressed && ev.key.code == Keyboard::Z) {
-                    currentSoldierIndex = (currentSoldierIndex + 1) % NUM_CHARACTERS;
+                    currentSoldierIndex = (currentSoldierIndex + 1) % players;
                     currentPlayer = soldiers[currentSoldierIndex];
 					Soldier.setTextureFromFile(currentPlayer->getTexturePath());
                     
