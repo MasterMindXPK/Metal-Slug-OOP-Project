@@ -11,6 +11,7 @@ protected:
 	float fireRateMultiplier;
 	Weapon* ownPistol;
 	Weapon* equippedWeapon;
+	GrenadeWeapon* ownGrenade;
 	bool activeState;
 	void throwGrenade() {}
 	void meleeAttack(){}
@@ -27,12 +28,12 @@ public:
 		equippedWeapon = ownPistol;
 		specialMoveActive = false;
 		activeState = true;
+		ownGrenade = WeaponFactory::createHandGrenade(10);	//10 grenades by default
 	}
 	~PlayerSoldier() {
 		delete ownPistol;
+		delete ownGrenade;
 	}
-	virtual void specialMove() = 0;
-	virtual void updateSpecialMove() = 0;
 	void equipWeapon(Weapon* w) {
 		equippedWeapon = w;
 	}
@@ -43,21 +44,35 @@ public:
 	}
 
 	virtual void shoot(Position spawn, float dirX, float dirY) {
-
 		equippedWeapon->attack(spawn, dirX, dirY, getFireRateMultiplier());
-		
 	}
+	
+	virtual const char* getTexturePath() const = 0;
+	virtual void specialMove() = 0;
+	virtual void updateSpecialMove() = 0;
+
+	//==============GrenadeLogic=================
+	void throwGrenade(Position spawn, float dirX, float dirY) {
+		ownGrenade->attack(spawn, dirX, dirY, 1.0f);
+	}
+	void updateGrenade(float dt, Survival& level, int screenW, int screenH) {
+		ownGrenade->updateBullets(dt, level, screenW, screenH);
+	}
+	void drawGrenade(RenderWindow& window, float cameraOffset) {
+		ownGrenade->drawBullets(window, cameraOffset);
+	}
+
 	// Getters
 	int getGrenadeCount() const { return grenadeCount; }
 	bool isActive() const { return activeState; }
 	float getFireRateMultiplier() const { return fireRateMultiplier; }
 	bool getSpecialMoveActive() { return specialMoveActive; }
 	Weapon* getActiveWeapon() const { return equippedWeapon; }
+	GrenadeWeapon* getGrenade() const { return ownGrenade; }
 	// Setters
-	void setGrenadeCount(int count) { grenadeCount = count; }
 	void setActiveState(bool state) { activeState = state; }
 
-	virtual const char* getTexturePath() const = 0;
+	
 };
 
 class Marco : public PlayerSoldier {
@@ -67,7 +82,8 @@ public:
 	Marco(){
 		grenadeCount = 8; //2 less than normal
 		fireRateMultiplier = 1.25; //25% higher fire rate
-		
+		delete ownGrenade;
+		ownGrenade = WeaponFactory::createHandGrenade(grenadeCount);
 	}
 	const char* getTexturePath() const override { return "Data/Characters/Marco.png"; }
 	void specialMove() override {
@@ -101,7 +117,8 @@ public:
 	Tarma(){
 		grenadeCount = 10;
 		fireRateMultiplier = 1.0;
-
+		delete ownGrenade;
+		ownGrenade = WeaponFactory::createHandGrenade(grenadeCount);
 	}
 	virtual void specialMove() override {
 		// Implement Tarma's special move(rapid fire)
@@ -118,7 +135,8 @@ public:
 	Eri(){
 		grenadeCount = 10; 
 		fireRateMultiplier = 0.80;
-
+		delete ownGrenade;
+		ownGrenade = WeaponFactory::createFireBombGrenade(grenadeCount);
 	}
 	virtual void specialMove() override {
 		// Implement Eri's special move(stealth)
@@ -135,6 +153,8 @@ public:
 	Fio(){
 		grenadeCount = 10; 
 		fireRateMultiplier = 1.0f;
+		delete ownGrenade;
+		ownGrenade = WeaponFactory::createHandGrenade(grenadeCount);
 	}
 	void specialMove() override {
 		// Implement Fio's special move (Fire rate increased by 100% for 10 seconds)

@@ -8,8 +8,6 @@ class Weapon : public Entity {
 protected:
 	float fireRate;
 	float fireCooldown;
-	Texture texture;
-	Sprite sprite;
 	float damage;
 public:
 	Weapon() : fireCooldown(0) {}
@@ -21,7 +19,6 @@ public:
 	virtual void update(float dt) { fireCooldown += dt; }
 	virtual void drawBullets(RenderWindow& window, float cameraOffset) {}
 	virtual void updateBullets(float dt, Survival& level, int screenW, int screenH) = 0;
-	virtual void setProjectileTexture(Texture& tex) {}
 	virtual void stopFiring() {}
 
 };
@@ -30,16 +27,16 @@ public:
 class ProjectileWeapon : public Weapon {
 
 protected:
-	Projectile* bullets;
+	StraightProjectile* bullets;
+	Texture ammoTex;
 	int totalAmmo;
 	float projectileSpeed;
-	Texture* projectileTexture;
 	float projectileScaleX = 1.0f;
 	float projectileScaleY = 1.0f;
 
 public:
-	ProjectileWeapon(int maxP, float sp) : totalAmmo(maxP), projectileSpeed(sp), bullets(NULL), projectileTexture(nullptr) {
-		bullets = new Projectile[totalAmmo];
+	ProjectileWeapon(int maxP, float sp) : totalAmmo(maxP), projectileSpeed(sp), bullets(NULL){
+		bullets = new StraightProjectile[totalAmmo];
 	}
 	//void setProjectileTexture(Texture& tex) { projectileTexture = &tex;	sprite.setScale(20.0f, 20.0f);}
 
@@ -80,23 +77,22 @@ public:
 		for (int i = 0; i < totalAmmo; i++) bullets[i].draw(window, cameraOffset);
 	}
 	void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) override {
-		if (!canFire(fireRateMultiplier) || !projectileTexture) {
+		if (!canFire(fireRateMultiplier) ) {
 			//std::cout << "cannot fire";
 			return;
 		}
 		for (int i = 0; i < totalAmmo; ++i) {
 			if (!bullets[i].isActive()) {
-				bullets[i].activate(*projectileTexture, startPos, projectileSpeed * dirX, projectileSpeed * dirY, (int)damage, projectileScaleX, projectileScaleY);
+				bullets[i].activate(ammoTex, startPos, projectileSpeed * dirX, projectileSpeed * dirY, (int)damage, projectileScaleX, projectileScaleY);
 				fireCooldown = 0; // Reset cooldown after firing
 				break;
 			}
 		}
 	}
 	void attackDirect(Position startPos, float dirX, float dirY) override { //for marco dual shooting
-		if (!projectileTexture) return;
 		for (int i = 0; i < totalAmmo; ++i) {
 			if (!bullets[i].isActive()) {
-				bullets[i].activate(*projectileTexture, startPos, projectileSpeed * dirX, projectileSpeed * dirY, (int)damage, projectileScaleX, projectileScaleY);
+				bullets[i].activate(ammoTex, startPos, projectileSpeed * dirX, projectileSpeed * dirY, (int)damage, projectileScaleX, projectileScaleY);
 				break;
 			}
 		}
@@ -116,11 +112,9 @@ public:
 		fireRate = 4.0f;
 		damage = 5;
 		setProjectileScale(0.25f, 0.25f);
+		ammoTex.loadFromFile("Data/items/bullet.png");
 	}
-	void setProjectileTexture(Texture& tex) override {
-		projectileTexture = new Texture();
-		projectileTexture->loadFromFile("Data/items/bullet.png");
-	}
+	
 	void draw(RenderWindow& window) {}
 };
 
@@ -130,12 +124,10 @@ public:
 		fireRate = 8.0f;
 		damage = 5;
 		setProjectileScale(0.25f, 0.25f);
+		ammoTex.loadFromFile("Data/items/bullet.png");
 	}
 
-	void setProjectileTexture(Texture& tex) override {
-		projectileTexture = new Texture();
-		projectileTexture->loadFromFile("Data/items/bullet.png");
-	}
+	
 	void draw(RenderWindow& window) {}
 
 };
@@ -146,24 +138,22 @@ public:
 		fireRate = 0.5f;
 		damage = 20;
 		setProjectileScale(0.25f, 0.25f);
+		ammoTex.loadFromFile("Data/items/rocket.png");
 	}
 
-	void setProjectileTexture(Texture& tex) override {
-		projectileTexture = new Texture();
-		projectileTexture->loadFromFile("Data/items/rocket.png");
-	}
 	void draw(RenderWindow& window) {}
 };
 class Flameshot : public Weapon {
 private:
 	Sprite flameSprite;
-	Texture* flameTexture;
+	Texture flameTexture;
 	bool firing;
 	float length;  // 5 blocks * 64px
 
 public:
 	Flameshot() : firing(false), length(5 * 64.0f) {
-
+		flameTexture.loadFromFile("Data/items/flame.png");
+		flameSprite.setTexture(flameTexture);
 	}
 
 	void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) override {
@@ -176,11 +166,7 @@ public:
 	void attackDirect(Position startPos, float dirX, float dirY) override {}
 	void updateBullets(float dt, Survival& level, int screenW, int screenH) override {}
 
-	void setProjectileTexture() {
-		flameTexture = new Texture();
-		flameTexture->loadFromFile("Data/items/flame.png");
-		flameSprite.setTexture(*flameTexture);
-	}
+	
 
 	void drawBullets(RenderWindow& window, float cameraOffset) override {
 		if (!firing) return;
@@ -194,12 +180,15 @@ public:
 class LaserGun : public Weapon {
 private:
 	Sprite laserSprite;
-	Texture* laserTexture;
+	Texture laserTexture;
 	bool firing;
 	float timer;
 
 public:
-	LaserGun() : firing(false), timer(0.f) { fireRate = 1; }
+	LaserGun() : firing(false), timer(0.f) { fireRate = 1; 
+	laserTexture.loadFromFile("Data/items/laser.png");
+	laserSprite.setTexture(laserTexture);
+	}
 
 	void attack(Position startPos, float dirX, float dirY, float fireRateMultiplier) override {
 		if (!firing) {
@@ -219,11 +208,6 @@ public:
 		if (timer <= 0.f) stopFiring();
 	}
 
-	void setProjectileTexture() {
-		laserTexture = new Texture();
-		laserTexture->loadFromFile("Data/items/laser.png");
-		laserSprite.setTexture(*laserTexture);
-	}
 
 	void drawBullets(RenderWindow& window, float cameraOffset) override {
 		if (!firing) return;
@@ -232,6 +216,250 @@ public:
 	}
 	void draw(RenderWindow& window) {}
 };
+//======================================GRANATAAA========================================
+
+class FirePool: public Entity {
+private:
+	float radius;        //(3 blocks * 64 = 192)
+	float timeLeft;
+	float damageCooldown;
+	float damageInterval;
+	int damage;
+public:
+	
+
+	FirePool() : radius(192.f), timeLeft(0.f),damageCooldown(0.f), damageInterval(0.25f),damage(3) {
+		active = false;
+		tex.loadFromFile("Data/items/flame.png");
+		sprite.setTexture(tex);
+		float diameter = radius * 2.f;
+		sprite.setScale(diameter / tex.getSize().x, 1.0f);
+	}
+
+	void spawn(Position pos) {
+		position = pos;
+		timeLeft = 10.f;
+		damageCooldown = 0.f;
+		active = true;
+		// centre the sprite on the explosion point
+		sprite.setPosition(position.x - radius, position.y - radius);
+	}
+	
+
+	
+	void update(float dt) {
+		if (!active) return;
+		timeLeft -= dt;
+		if (timeLeft <= 0.f) { active = false; return; }
+		damageCooldown -= dt;
+	}
+
+	bool canDamage() {
+		if (!active) return false;
+		if (damageCooldown <= 0.f) {
+			damageCooldown = damageInterval;
+			return true;
+		}
+		return false;
+	}
+	//check if a point is within the pool radius, used for checking if enemy is standing in it
+	bool contains(float px, float py) const {
+		if (!active) return false;
+		float dx = px - position.x;
+		float dy = py - position.y;
+		return (dx * dx + dy * dy) <= (radius * radius);
+	}
+
+	void draw(RenderWindow& window, float cameraOffset) {
+		if (!active) return;
+		sprite.setPosition(position.x - radius - cameraOffset, position.y);
+		window.draw(sprite);
+	}
+};
+
+
+struct BlastEvent {
+	Position center;
+	bool pending;
+};
+
+class GrenadeWeapon : public Weapon {
+protected:
+	const float BLAST_RADIUS;   // 3 * 64 = 192 px  
+	static const int MAX_GRENADES = 10;   // max inflight at once
+	BallisticProjectile grenades[MAX_GRENADES];
+	Texture grenadeTex;
+	float throwSpeed;
+	int maxThrows;        // total grenades the character carries
+	int throwsLeft;       // remaining count
+public:
+	GrenadeWeapon(float speed, int throws): throwSpeed(speed), maxThrows(throws), throwsLeft(throws), BLAST_RADIUS(192.0f) {
+		fireRate = 1.2f;
+		damage = 20;
+		grenadeTex.loadFromFile("Data/items/grenade.png");
+	}
+
+	int  getThrowsLeft() const { return throwsLeft; }
+	int  getMaxThrows() const { return maxThrows; }
+	float getBlastRadius() const { return BLAST_RADIUS; }
+	
+	BlastEvent blasts[MAX_GRENADES];  
+
+	virtual FirePool* getFirePools(int& outCount) {
+		outCount = 0;
+		return nullptr;   // base has no pools
+	}
+
+	void attack(Position startPos, float dirX, float dirY,
+		float fireRateMultiplier) override {
+		if (!canFire(fireRateMultiplier)) return;
+		if (throwsLeft <= 0) return;          // out of grenades
+
+		for (int i = 0; i < MAX_GRENADES; i++) {
+			if (!grenades[i].isActive() && !grenades[i].hasExploded()) {
+				grenades[i].activate(grenadeTex, startPos,throwSpeed * dirX,throwSpeed * dirY - 300.f, (int)damage, 0.15f, 0.15f);
+				fireCooldown = 0;
+				throwsLeft--;            
+				break;
+			}
+		}
+	}
+
+	void attackDirect(Position startPos, float dirX, float dirY) override {}
+
+	void updateBullets(float dt, Survival& level,
+		int screenW, int screenH) override {
+		Weapon::update(dt);
+		for (int i = 0; i < MAX_GRENADES; i++) {
+			if (!grenades[i].isActive()) continue;
+
+			grenades[i].update(dt);
+
+			Position pos = grenades[i].getPosition();
+			float gw = grenades[i].getWidth();
+			float gh = grenades[i].getHeight();
+
+			// Hit solid terrain and explode
+			if (level.isSolid(pos.x, pos.y, gw, gh)) {
+				Position blast = pos;
+				grenades[i].triggerExplosion();
+				onExplode(blast, level); 
+			}
+		}
+	}
+
+	void drawBullets(RenderWindow& window, float cameraOffset) override {
+		for (int i = 0; i < MAX_GRENADES; i++)
+			grenades[i].draw(window, cameraOffset);
+	}
+
+	virtual void onExplode(Position blastCenter, Survival& level) = 0;
+
+	//void processBlastDamage(Enemy** enemies, int enemyCount) {
+	//	for (int i = 0; i < MAX_GRENADES; i++) {
+	//		if (!grenades[i].hasExploded()) continue;
+	//		Position blast = grenades[i].getPosition();					//..................E
+	//		for (int e = 0; e < enemyCount; e++) {						//................/..|
+	//			if (!enemies[e]) continue;								//..dx^2 + dy^2../...|
+	//			float dx = enemies[e]->getPosition().x - blast.x;		//............../....| dy
+	//			float dy = enemies[e]->getPosition().y - blast.y;		//............./.....|
+	//			if (dx * dx + dy * dy <= BLAST_RADIUS * BLAST_RADIUS)	//..........==B==____|
+	//				enemies[e]->takeDamage(damage);						//.................dx
+	//		}
+	//		grenades[i].clearExplosion();
+	//	}
+	//}
+};
+
+
+class HandGrenade : public GrenadeWeapon {
+private:
+
+public:
+	HandGrenade(int throws = 10) : GrenadeWeapon(600.0f, throws) {
+		grenadeTex.loadFromFile("Data/items/grenade.png");
+	}
+	void onExplode(Position blastCenter, Survival& level) {
+		for (int i = 0; i < MAX_GRENADES; i++) {
+			if (!blasts[i].pending) {
+				blasts[i].center = blastCenter;
+				blasts[i].pending = true;
+				break;
+			}
+		}
+	}
+};
+
+class FireBombGrenade : public GrenadeWeapon {
+public:
+	static const int MAX_POOLS = 10;
+	FirePool pools[MAX_POOLS];
+
+	FireBombGrenade(int throws = 10) : GrenadeWeapon(600.0f, throws) {
+		grenadeTex.loadFromFile("Data/items/firegrenade.png");
+		damage = 20;
+		fireRate = 1.2f;
+	}
+	void updateBullets(float dt, Survival& level,int screenW, int screenH) override {
+		GrenadeWeapon::updateBullets(dt, level, screenW, screenH);
+		for (int p = 0; p < MAX_POOLS; p++)
+			pools[p].update(dt);
+	}
+
+	void drawBullets(RenderWindow& window, float cameraOffset) override {
+		GrenadeWeapon::drawBullets(window, cameraOffset);
+		for (int p = 0; p < MAX_POOLS; p++)
+			pools[p].draw(window, cameraOffset);
+	}
+
+	FirePool* getFirePools(int& outCount) override {
+		outCount = MAX_POOLS;
+		return pools;
+	}
+
+	void onExplode(Position blastCenter, Survival& level) override{
+		for (int i = 0; i < MAX_GRENADES; i++) {
+			if (!blasts[i].pending) {
+				blasts[i].center = blastCenter;
+				blasts[i].pending = true;
+				break;
+			}
+		}
+
+		//spawn a fire pool
+		for (int p = 0; p < MAX_POOLS; p++) {
+			if (!pools[p].isActive()) {
+				pools[p].spawn(blastCenter);
+				break;
+			}
+		}
+	}
+
+	/*void processFireDamage(Enemy** enemies, int enemyCount) {
+		for (int p = 0; p < MAX_POOLS; p++) {
+			if (!pools[p].isActive()) continue;
+			if (!pools[p].canDamage()) continue;
+			for (int e = 0; e < enemyCount; e++) {
+				if (!enemies[e]) continue;
+				float enemyX = enemies[e]->getPosition().x + enemies[e]->getWidth() / 2.f;
+				float enemyY = enemies[e]->getPosition().y + enemies[e]->getHeight() / 2.f;
+				if (pools[p].contains(enemyX, enemyY))
+					enemies[e]->takeDamage(5);
+			}
+		}
+	}*/
+};
+
+
+
+
+
+
+
+
+
+
+
 
 class WeaponFactory {
 public:
@@ -240,4 +468,6 @@ public:
 	static Weapon* createRocketLauncher() { return new RocketLauncher(); }
 	static Weapon* createFlameshot() { return new Flameshot(); }
 	static Weapon* createLaserGun() { return new LaserGun(); }
+	static GrenadeWeapon* createHandGrenade(int throws) { return new HandGrenade(throws); }
+	static GrenadeWeapon* createFireBombGrenade(int throws) { return new FireBombGrenade(throws); }
 };

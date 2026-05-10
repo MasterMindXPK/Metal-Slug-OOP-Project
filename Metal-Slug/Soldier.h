@@ -52,12 +52,14 @@ public:
 			if (velocityX < 0)	velocityX = 0;
 			velocityX += acceleration;
 			if (velocityX > max_speed) velocityX = max_speed;
+			facingDir = 1.0f;
 		}
 		else if (Keyboard::isKeyPressed(Keyboard::A))
 		{
 			if (velocityX > 0)	velocityX = 0;
 			velocityX -= acceleration;
 			if (velocityX < -max_speed) velocityX = -max_speed;
+			facingDir = -1.0f;	
 		}
 		else
 		{
@@ -140,6 +142,7 @@ public:
     float getScreenX(const Camera& cam) const { return position.x - cam.getCameraOffset(); }
 	SoldierState getState() const { return state; }
 	void setState(SoldierState newState) { state = newState; }
+	float getFacingDir() const { return facingDir; }
 };
 
 

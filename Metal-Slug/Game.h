@@ -44,8 +44,9 @@ private:
     Weapon* levelWeapons[MAX_LEVEL_WEAPONS];
     int levelWeaponCount = 0;
 
+    float aimDirX;
+	float aimDirY;
     bool mousePressedBefore = false;
-	float aimFacingDir = 1.0f; //1 for right, -1 for left
 
 	Clock clock;
 
@@ -60,6 +61,44 @@ private:
     const int screenW = 1600;
     const int screenH = 900;
     const float camMinX = 300.0f;
+
+
+	//Grenade - Enemy Collision Management
+    void processGrenades() {
+        for (int i = 0; i < players; i++) {
+            GrenadeWeapon* g = soldiers[i]->getGrenade();
+
+            // blast damage
+            for (int j = 0; j < g->getMaxThrows(); j++) {
+                if (!g->blasts[j].pending) continue;
+                Position blast = g->blasts[j].center;
+                g->blasts[j].pending = false;
+
+                for (int e = 0; e < enemyCount; e++) {
+                    if (!activeEnemies[e]) continue;
+                    float dx = activeEnemies[e]->getPosition().x - blast.x;
+                    float dy = activeEnemies[e]->getPosition().y - blast.y;
+                    if (dx * dx + dy * dy <= g->getBlastRadius() * g->getBlastRadius())
+                        activeEnemies[e]->takeDamage(5);
+                }
+            }
+
+            // fire pool damage 
+            int poolCount = 0;
+            FirePool* pools = g->getFirePools(poolCount);
+            for (int p = 0; p < poolCount; p++) {
+                if (!pools[p].isActive())    continue;
+                if (!pools[p].canDamage()) continue;
+                for (int e = 0; e < enemyCount; e++) {
+                    if (!activeEnemies[e]) continue;
+                    float ex = activeEnemies[e]->getPosition().x + activeEnemies[e]->getWidth() / 2.f;
+                    float ey = activeEnemies[e]->getPosition().y + activeEnemies[e]->getHeight() / 2.f;
+                    if (pools[p].contains(ex, ey))
+                        activeEnemies[e]->takeDamage(5);
+                }
+            }
+        }
+    }
 
 
 public:
@@ -94,9 +133,9 @@ public:
     bool loadAssets() {
         //Player
         //if (!bulletTex.loadFromFile("Data/Items/bullet.png")) return false;
-        for (int i = 0; i < players; ++i) {
+        /*for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->setProjectileTexture(bulletTex);
-        }
+        }*/
 
 
         //Background
@@ -132,7 +171,6 @@ public:
     }
     void handleEvents() {
         Event ev;
-      
         while (window.pollEvent(ev)) {
             if (ev.type == Event::Closed) window.close();
 
@@ -180,12 +218,12 @@ public:
                 else if (Keyboard::isKeyPressed(Keyboard::F)) {
                     currentPlayer->specialMove();
                 }
-                /*else if (Mouse::isButtonPressed(Mouse::Left)) {
+                else if (Keyboard::isKeyPressed(Keyboard::G)) {
                     Position spawn;
                     spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
                     spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-				    currentPlayer->shoot(spawn, 1.0f, 0.0f);
-                }*/
+                    currentPlayer->throwGrenade(spawn, aimDirX, aimDirY);
+                }
                 
         }
     }
@@ -254,6 +292,7 @@ public:
         }*/
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
+			soldiers[i]->updateGrenade(0.016f, survival, screenW, screenH);
         }
 
         //============================Shooting===============================================
@@ -266,13 +305,13 @@ public:
 		float dy = mouseDirY - gunPosY;
 		float dx = mouseDirX - gunPosX;
 
-        aimFacingDir = (dx >= 0.f) ? 1.0f : -1.0f;
+        
 		float angle = std::atan2(-dy, (dx < 0 ? -dx : dx));        //using -dy because in SFML, Y axis is inverted 
         if (angle < 0.0f) angle = 0.0f;
         else if(angle > 3.141592f / 2.0f)  angle = 3.141592f / 2.0f;
 
-		float aimDirY = -std::sin(angle);                //again using -sin because of inverted Y axis
-        float aimDirX = aimFacingDir * std::cos(angle);
+		aimDirY = -std::sin(angle);                //again using -sin because of inverted Y axis
+        aimDirX = Soldier.getFacingDir() * std::cos(angle);
 
 		currentPlayer->updateSpecialMove();
 
@@ -288,7 +327,8 @@ public:
             currentPlayer->getActiveWeapon()->stopFiring();  // only on release
         }
         mousePressedBefore = mousePressedNow;
-
+        
+		//============================Enemy Logic===============================================
         for (int i = 0;i < maxEnemies;i++) {
             if (activeEnemies[i] != nullptr) {
 
@@ -317,6 +357,8 @@ public:
                 );
             }
         }
+        //===========================grenade================================
+		processGrenades();
     }
 
     void render() {
@@ -336,7 +378,12 @@ public:
         
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->drawBullets(window, camera.getCameraOffset());
-
+			soldiers[i]->drawGrenade(window, camera.getCameraOffset());
+            // draw fire pools
+            int poolCount = 0;
+            FirePool* pools = soldiers[i]->getGrenade()->getFirePools(poolCount);
+            for (int p = 0; p < poolCount; p++)
+                pools[p].draw(window, camera.getCameraOffset());
         }
         for (int i = 0; i < enemyCount; ++i) {
             if (activeEnemies[i] != nullptr) {
