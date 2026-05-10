@@ -17,14 +17,20 @@ protected:
     float gravity;
     float terminal_velocity;
     bool onGround;
+ 
 
 
 
 
 public:
+
+    virtual void setWeaponTexture(const Texture& tex) {
+    }
     void scaleEnemy(float multiplier) {
         width = width * multiplier;
         height = height * multiplier;
+
+
 
         sprite.setScale(sprite.getScale().x * multiplier, sprite.getScale().y * multiplier);
     }
@@ -33,6 +39,8 @@ public:
         if (!onGround) {
             velocityY += gravity * gravityMultiplier;
             if (velocityY > terminal_velocity) {
+
+
                 velocityY = terminal_velocity;
             }
         }
@@ -45,6 +53,8 @@ public:
             onGround = true;
         }
         else {
+
+
             position.y = nextY;
             onGround = false;
         }
@@ -78,6 +88,7 @@ public:
         float scaleX = width / imageWidth;
         float scaleY = height / imageHeight;
 
+
         sprite.setScale(scaleX, scaleY);
     }
     virtual void setLandedTexture(const Texture& tex) {
@@ -88,18 +99,21 @@ public:
         window.draw(sprite);
     }
 
-   // void setDebugColor(Color color) { debugShape.setFillColor(color); }
     void randomMoveX() { position.x += velocityX; }
 
     void detectCollision(Survival& map) {
         float nextX = position.x + velocityX;
         float correctedX = map.horizontalCollision(position.x, position.y, velocityX, width, height);
+
+
         if (correctedX != nextX) {
             velocityX = -velocityX;
             facing_left = !facing_left;
             facing_right = !facing_right;
             position.x = correctedX;
         }
+
+
         else if (gravity > 0.0f && onGround) {
 
             
@@ -130,18 +144,22 @@ public:
     float getWidth() const { return width; }
     float getHeight() const { return height; }
     float getVelocityY() const { return velocityY; }
+
+
     virtual void updateProjectiles(float dt, Survival& map, int screenW, int screenH) {}
     virtual void drawProjectiles(RenderWindow& window, float cameraOffset) {}
 };
 
 class Infantry : public Enemy {
+
+
 protected:
     float range;
     float attackTimer;
 
 public:
-    Infantry(int hp, int sp, float r)
-        : DamageableEntity(hp), Enemy(sp), range(r), attackTimer(0.0f) {
+    Infantry(int hp, int sp, float r=650)
+        : Enemy(sp), range(r), attackTimer(0.0f) {
     }
 
 
@@ -165,12 +183,14 @@ private:
     Pistol pistol;
 
 public:
-    Rebel(int hp = 2, int sp = 5, float r = 250.f)
+    Rebel(int hp = 2, int sp = 5, float r = 650.f)
         : DamageableEntity(hp), Infantry(hp, sp, r) {
        // setDebugColor(Color::Red);
     }
 
     void attack(float dt, float playerX) override {
+
+
         float distanceToPlayer = std::abs(position.x - playerX);
         if (distanceToPlayer > range) return;
         if (!readyToAttack(dt, 1.5f)) return;
@@ -179,6 +199,8 @@ public:
 
 
         facing_right = (playerX > position.x);
+
+
         facing_left = !facing_right;
 
         Position spawn;
@@ -187,8 +209,10 @@ public:
 
 
         spawn.x = position.x + (width / 2.0f);
+
         spawn.y = position.y + (height / 2.0f);
-        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 1.0f, 1.0f);
+        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 0.0f, 1.0f);
+
     }
 
     void updateProjectiles(float dt, Survival& map, int screenW, int screenH) override {
@@ -196,6 +220,8 @@ public:
     }
 
     void drawProjectiles(RenderWindow& window, float cameraOffset) override {
+
+
         pistol.drawBullets(window, cameraOffset);
     }
     void die() override {}
@@ -206,19 +232,27 @@ class ShieldedSoldier : public Infantry {
 private:
     Pistol pistol;
 public:
-    ShieldedSoldier(int hp = 2, int sp = 4, float r = 250.f)
+    ShieldedSoldier(int hp = 2, int sp = 4, float r = 650.f)
         : DamageableEntity(hp), Infantry(hp, sp, r) {
         //setDebugColor(Color::Blue);
     }
     void updateProjectiles(float dt, Survival& map, int screenW, int screenH) override {
+
+
         pistol.updateBullets(dt, map, screenW, screenH);
+
+
     }
 
     void drawProjectiles(RenderWindow& window, float cameraOffset) override {
         pistol.drawBullets(window, cameraOffset);
     }
     void attack(float dt, float playerX) override {
+
+
         float distanceToPlayer = std::abs(position.x - playerX);
+
+
         if (distanceToPlayer > range) return;
         if (!readyToAttack(dt, 1.5f)) return;
 
@@ -229,7 +263,7 @@ public:
         spawn.x = position.x + (width / 2.0f);
         spawn.y = position.y + (height / 2.0f);
 
-        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 1.0f, 1.0f);
+        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 0.0f, 1.0f);
     }
 
     void die() override {}
@@ -238,9 +272,10 @@ public:
 
 class GrenadeSoldier : public Infantry {
 public:
-    GrenadeSoldier(int hp = 2, int sp = 4, float r = 250.f)
+    GrenadeSoldier(int hp = 2, int sp = 4, float r = 650.f)
+
+
         : DamageableEntity(hp), Infantry(hp, sp, r) {
-       // setDebugColor(Color::Green);
     }
     void attack(float dt, float playerX) override {}
     void die() override {}
@@ -251,7 +286,7 @@ class BazookaSoldier : public Infantry {
 public:
     BazookaSoldier(int hp = 2, int sp = 3, float r = 350.f)
         : DamageableEntity(hp), Infantry(hp, sp, r) {
-       // setDebugColor(Color::Black);
+
     }
     void attack(float dt, float playerX) override {}
     void die() override {}
@@ -328,7 +363,7 @@ private:
     Texture landedTex;
 
 public:
-    Paratrooper(int hp = 2, int sp = 3, float r = 250.f)
+    Paratrooper(int hp = 2, int sp = 3, float r = 650.f)
         : DamageableEntity(hp), Aerial(hp, sp, 200.f, r), parachuteActive(true) {
         gravity = 0.0f;
         velocityY = 1.5f;
@@ -375,19 +410,58 @@ public:
 
 class Martian : public Alien {
 private:
-    int ringLaserCount;
+    Pistol pistol;
     float velY;
+    float attackTimer;
+    float range;
 
 public:
     Martian(int hp = 4, int sp = 3)
-        : DamageableEntity(hp), Alien(hp, sp, 5), ringLaserCount(3) {
-    
+        : DamageableEntity(hp), Alien(hp, sp, 5), attackTimer(0), range(650.0f) {
+  
         gravity = 0.0f; 
         velocityY= 1.5f;
     }
+    bool readyToAttack(float dt, float cooldownDelay) {
+        attackTimer += dt;
+        
+        
+        if (attackTimer >= cooldownDelay) {
+
+
+                attackTimer = 0.0f;  return true;
+
+
+        }
+        return false;
+    }
+
 
     void attack(float dt, float playerX) override {
-       
+        float distanceToPlayer = std::abs(position.x - playerX);
+        if (distanceToPlayer > range) return;
+        if (!readyToAttack(dt, 1.5f)) return; // Shoots every 1.5 seconds
+
+                facing_right = (playerX > position.x);
+                facing_left = !facing_right;
+                Position spawn;
+        spawn.x = position.x + (width / 2.0f);
+        spawn.y = position.y + (height / 2.0f);
+
+
+
+
+        pistol.attack(spawn, facing_right ? 1.0f : -1.0f, 0.0f, 1.0f);
+    }
+
+
+
+
+    void updateProjectiles(float dt, Survival& map, int screenW, int screenH) override {
+        pistol.updateBullets(dt, map, screenW, screenH);
+    }
+    void drawProjectiles(RenderWindow& window, float cameraOffset) override {
+        pistol.drawBullets(window, cameraOffset);
     }
 
     void die() override {

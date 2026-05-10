@@ -4,11 +4,15 @@
 using namespace sf;
 #include "Projectile.h"
 
+
+class Enemy;
+class Survival;
 class Weapon: public Entity {
 protected:
 	float fireRate;
 	float fireCooldown;
 	float damage;
+	Texture projectileTex;
 public:
 	Weapon() : fireCooldown(0) {}
 	bool canFire(float fireRateMultiplier) const { return fireCooldown >= 1.0f / (fireRate * fireRateMultiplier); }
@@ -20,7 +24,17 @@ public:
 	virtual void drawBullets(RenderWindow& window, float cameraOffset) {}
 	virtual void updateBullets(float dt, Survival& level, int screenW, int screenH) = 0;
 	virtual void stopFiring() {}
+	virtual void setProjectileTexture(const Texture& tex) {
+		projectileTex = tex;
+	}
 
+	struct EnemyHitbox {
+		float x, y, w, h;
+		int index;
+	};
+	virtual ~Weapon() {}
+
+	virtual int checkBulletHit(EnemyHitbox* boxes, int count) { return -1; }
 };
 
 class ProjectileWeapon : public Weapon {
@@ -36,7 +50,10 @@ public:
 	ProjectileWeapon(int maxP, float sp) : totalAmmo(maxP), projectileSpeed(sp), bullets(NULL){
 		bullets = new StraightProjectile[totalAmmo];
 	}
-	//void setammoTex(Texture& tex) { ammoTex = &tex;	sprite.setScale(20.0f, 20.0f);}
+	int getTotalAmmo() const { return totalAmmo; }
+	StraightProjectile& getBullet(int i) { return bullets[i]; }
+	float getDamage() const { return damage; }
+	
 
     void updateBullets(float dt, Survival& level, int screenW, int screenH) override {
         Weapon::update(dt);
@@ -449,6 +466,8 @@ public:
 			}
 		}
 	}
+
+	
 
 	/*void processFireDamage(Enemy** enemies, int enemyCount) {
 		for (int p = 0; p < MAX_POOLS; p++) {

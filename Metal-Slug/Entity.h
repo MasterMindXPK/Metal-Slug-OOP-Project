@@ -15,12 +15,12 @@ public:
 	virtual ~Entity() {}
     Entity(const Entity& other) {
         position = other.position;
-        isActive = other.isActive;
+        active= other.active;
         tex = other.tex;          
         sprite = other.sprite;   
         sprite.setTexture(tex);  
     }
-	virtual void draw(RenderWindow& window) = 0;
+	virtual void draw(RenderWindow& window){}
 	
 	
     Position getPosition() const {

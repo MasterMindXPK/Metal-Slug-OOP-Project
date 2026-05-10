@@ -62,6 +62,9 @@ public:
 			addEnemy(prototypes[6]->clone(), randomX, activeEnemies, enemyCount, maxEnemies);
 			aerialBatchesSpawned++;
 		}
+
+
+
 		if (alienBatchesSpawned < 1) {
 			float randomX = safeStartX + (rand() % safeWidth);
 
@@ -172,6 +175,8 @@ public:
 	}
 
 	bool loadTextures() {
+
+
 		if (!rebelTex.loadFromFile("Data/Enemies/enemy_images/rsIMAGE1.png")) return false;
 		if (!grenadeTex.loadFromFile("Data/Enemies/enemy_images/rsIMAGE1.png")) return false;//loading
 		if (!shieldTex.loadFromFile("Data/Enemies/enemy_images/ssIMAGE1.png")) return false;//loading
@@ -180,6 +185,10 @@ public:
 		if (!mummyTex.loadFromFile("Data/Enemies/enemy_images/mummyIMAGE1.png")) return false;
 		if (!paratrooperTex.loadFromFile("Data/Enemies/enemy_images/ptIMAGE1.png")) return false;//loading
 		if (!martianTex.loadFromFile("Data/Enemies/enemy_images/mIMAGE1.png")) return false;//loading
+
+		std::cout << "ALL ENEMY TEXTURES LOADED OK\n";
+
+	
 
 		prototypes[0]->setEnemyTexture(rebelTex);        // Rebel
 		prototypes[1]->setEnemyTexture(grenadeTex);      // Grenade
@@ -207,12 +216,16 @@ public:
 			int colCheck= (i * segLen) + (segLen/ 2);	//center column of that specific seg
 			float checkX = colCheck * cellSize;
 			bool foundWater = false;
+
+
 			
 			for (int j = 0;j < height;j++) {//iterate in the checking column from up to down to scan water
 				float checkY = j   * cellSize;
 				if (map.isWaterAt(checkX, checkY)) {
 					foundWater = true;
 					break; 
+
+
 				}
 				else if (map.isSolid(checkX, checkY, 1, 1) ){	//else determine if it is a peak or a plain
 					if (i < peak) peak = i;
@@ -265,16 +278,24 @@ public:
 		int otherDeckIndex = 0;
 		for (int i = 0; i < numSpecialTypes; i++) {
 			for (int b = 0; b < otherBatches; b++) {
+
+
 				otherDeck[otherDeckIndex++] = specialTypes[i];
+			
+			
 			}
 		}
 
 		//shuffle
 		for (int i = 0; i < totalOther; i++) {
+
+
 			int swapIdx = rand() % totalOther;
 			int temp = otherDeck[i];
 			otherDeck[i] = otherDeck[swapIdx];
 			otherDeck[swapIdx] = temp;
+
+
 		}
 
 
@@ -291,16 +312,24 @@ public:
 
 		for (int i = 0; i < segments; i++) {
 			int swapIdx = rand() % segments;
+
+
 			bool temp = spawnInSegment[i];
 			spawnInSegment[i] = spawnInSegment[swapIdx];
 			spawnInSegment[swapIdx] = temp;
+
+
 		}
 
 		for (int i = 0; i < segments; i++) {
 			int swapIdx = rand() % segments;
+
+
 			bool temp = spawnInSegment[i];
 			spawnInSegment[i] = spawnInSegment[swapIdx];
 			spawnInSegment[swapIdx] = temp;
+
+
 		}
 	}
 
@@ -315,6 +344,8 @@ public:
 		int totalOther = 0;
 		int otherDeck[20];
 
+
+
 		bool spawnInSegment[14];
 
 
@@ -322,6 +353,8 @@ public:
 		setupSpawnDecks(lvl, infantryDeck, totalInfantry, otherDeck, totalOther, spawnInSegment);
 
 		int spawnedCount = 0;
+
+
 
 		for (int i = 0; i < segments; i++) {
 
@@ -332,6 +365,8 @@ public:
 
 			if (spawnInSegment[i] && spawnedCount < totalInfantry) {
 				float randomX = safeStartX + (rand() % (safeWidth - 150));
+
+
 
 				int randomIdx = infantryDeck[spawnedCount];
 				int batchSize = 1;
@@ -352,16 +387,20 @@ public:
 					if (enemyCount < maxEnemies) {
 						newEnemy->setPosition({ clusteredX, 100.0f });
 						activeEnemies[enemyCount++] = newEnemy;
+
+
 					}
 					else delete newEnemy;
 				}
 				spawnedCount++;
 			}
 
-			// 2. BIOME ENEMIES
+
 			if (segmentSpawners[i] != nullptr) {
 	
 				segmentSpawners[i]->spawnEnemies(safeStartX, safeWidth, activeEnemies, enemyCount, maxEnemies, prototypes);
+
+
 			}
 		}
 	}

@@ -4,7 +4,6 @@
 #include "Survival.h"
 #include "Soldier.h"
 #include "PlayerSoldier.h"
-
 #include "Projectile.h"
 #include "Enemy.h"
 #include "Spawn.h"
@@ -36,7 +35,6 @@ private:
     int clearFrames = 0;
     const int clearDurationFrames = 120;
     Text levelClearText;
-
     static const int players = 4;
     int currentSoldierIndex;
     PlayerSoldier* soldiers[players];
@@ -48,8 +46,12 @@ private:
     float aimDirX;
 	float aimDirY;
     bool mousePressedBefore = false;
+    int playerLives = 3;        
+    float playerDamageCooldown = 0.0f; 
 
-	Clock clock;
+    bool youWin;
+    Text youWinText;
+
 
     //Enemy Management:
     static const int maxEnemies = 150;
@@ -64,13 +66,23 @@ private:
 
     void checkLevelProgression() {
         if (survival.hasReachedEnd(Soldier.getPosition().x, 64)) {
+            currentLevel++;
+
+            if (currentLevel > 3) {
+
+
+                youWin = true;
+                return;
+            }
+
             levelCleared = true;
             clearFrames = clearDurationFrames;
-            currentLevel++;
-            if (currentLevel > 3) currentLevel = 3;
 
             for (int i = 0; i < enemyCount; ++i) {
                 if (activeEnemies[i] != nullptr) {
+
+
+
                     delete activeEnemies[i];
                     activeEnemies[i] = nullptr;
                 }
@@ -79,7 +91,6 @@ private:
             survival.generateSurvival();
             Soldier.setPosition({ 0.f, 0.f });
             camera.update(0.f, camMinX, screenW - camMinX - Soldier.getWidth());
-
             enemyManager.SpawnLocationCheck(survival);
             enemyManager.spawnEnemies(survival, activeEnemies, enemyCount, maxEnemies, currentLevel);
         }
@@ -106,7 +117,7 @@ private:
                     float dx = activeEnemies[e]->getPosition().x - blast.x;
                     float dy = activeEnemies[e]->getPosition().y - blast.y;
                     if (dx * dx + dy * dy <= g->getBlastRadius() * g->getBlastRadius())
-                        activeEnemies[e]->takeDamage(5);
+                        activeEnemies[e]->takeDamage(20);
                 }
             }
 
@@ -118,15 +129,59 @@ private:
                 if (!pools[p].canDamage()) continue;
                 for (int e = 0; e < enemyCount; e++) {
                     if (!activeEnemies[e]) continue;
+
+
                     float ex = activeEnemies[e]->getPosition().x + activeEnemies[e]->getWidth() / 2.f;
                     float ey = activeEnemies[e]->getPosition().y + activeEnemies[e]->getHeight() / 2.f;
+
+
                     if (pools[p].contains(ex, ey))
                         activeEnemies[e]->takeDamage(5);
                 }
             }
         }
     }
+    void processBulletCollisions() {
+        for (int p = 0; p < players; p++) {
+            ProjectileWeapon* pw = dynamic_cast<ProjectileWeapon*>(soldiers[p]->getActiveWeapon());
+            if (!pw) continue;
 
+            for (int i = 0; i < pw->getTotalAmmo(); i++) {
+                StraightProjectile& b = pw->getBullet(i);
+                if (!b.isActive()) continue;
+
+
+                Position bPos = b.getPosition();
+
+
+                float bw = b.getWidth();
+                float bh = b.getHeight();
+
+                for (int e = 0; e < enemyCount; e++) {
+                    if (!activeEnemies[e]) continue;
+
+
+
+
+                    float ex = activeEnemies[e]->getPosition().x;
+                    float ey = activeEnemies[e]->getPosition().y;
+                    float ew = activeEnemies[e]->getWidth();
+                    float eh = activeEnemies[e]->getHeight();
+
+                    bool hit = (bPos.x < ex + ew) &&
+                        (bPos.x + bw > ex) &&
+                        (bPos.y < ey + eh) &&
+                        (bPos.y + bh > ey);
+
+                    if (hit) {
+                        activeEnemies[e]->takeDamage((int)pw->getDamage());
+                        b.deactivate();
+                        break;
+                    }
+                }
+            }
+        }
+    }
 public:
     void updateMenuColors() {
         for (int i = 0; i < 3; ++i) {
@@ -153,8 +208,14 @@ public:
     }
 
     bool loadAssets() {
+        if (!bulletTex.loadFromFile(("Data/items/bullet.png")))     std::cout << "ERROR: Missing bullet image!" << std::endl;
         
-
+        
+        youWinText.setFont(menuFont);
+        youWinText.setString("YOU WIN!");
+        youWinText.setCharacterSize(120);
+        youWinText.setFillColor(Color::Yellow);
+        youWinText.setPosition(500, 350);
         //Background
         if (!menuBgTex.loadFromFile("Data/Backgrounds/Intro.jpg")) return false;
         menuBgSprite.setTexture(menuBgTex);
@@ -251,11 +312,14 @@ public:
     }
 
     void update() {
+        if (youWin) return;
         bool inWater;
         float gravityStrength, speedMultiplier;
         if (state == GameState::Menu) return;
 
-
+        if (playerDamageCooldown > 0.0f) {
+            playerDamageCooldown -= 0.016f;
+        }
 
         inWater = survival.isWaterAt(Soldier.getPosition().x + Soldier.getWidth() * 0.5f, Soldier.getPosition().y + Soldier.getHeight() * 0.5f);
         if (inWater) {
@@ -350,10 +414,43 @@ public:
                     activeEnemies[i]->getPosition().x - camera.getCameraOffset(),
                     activeEnemies[i]->getPosition().y
                 );
+                bool isColliding = (
+                    Soldier.getPosition().x < activeEnemies[i]->getPosition().x + activeEnemies[i]->getWidth() &&
+                    Soldier.getPosition().x + Soldier.getWidth() > activeEnemies[i]->getPosition().x &&
+                    Soldier.getPosition().y < activeEnemies[i]->getPosition().y + activeEnemies[i]->getHeight() &&
+                    Soldier.getPosition().y + Soldier.getHeight() > activeEnemies[i]->getPosition().y
+                    );
+                if (isColliding && playerDamageCooldown <= 0.0f) {
+
+
+
+
+
+                    currentPlayer->takeDamage(1);
+                    playerDamageCooldown = 2.0f;
+                    std::cout << "Player was hit by an enemy! Cooldown activated." << std::endl;
+
+
+                }
             }
         }
         //===========================grenade================================
-		processGrenades();
+        processBulletCollisions();
+        processGrenades();
+        
+   
+        for (int i = 0; i < maxEnemies; i++) {
+            if (activeEnemies[i] != nullptr) {
+                // If the enemy's health is 0 or less
+                if (activeEnemies[i]->getHp() <= 0) {
+
+                    activeEnemies[i]->die();     // Trigger their death function
+                    delete activeEnemies[i];     // Free up the RAM safely
+                    activeEnemies[i] = nullptr;  // Empty the slot so a new enemy can spawn later
+
+                }
+            }
+        }
     }
 
     void render() {
@@ -387,7 +484,7 @@ public:
                 activeEnemies[i]->drawProjectiles(window, camera.getCameraOffset());
             }
         }
-
+        if (youWin)   window.draw(youWinText);
         window.draw(Soldier.getSprite());
         window.display();
     }

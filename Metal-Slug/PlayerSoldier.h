@@ -47,6 +47,8 @@ public:
 	virtual void shoot(Position spawn, float dirX, float dirY) {
 		equippedWeapon->attack(spawn, dirX, dirY, getFireRateMultiplier());
 	}
+
+
 	
 	virtual const char* getTexturePath() const = 0;
 	virtual void specialMove() = 0;
