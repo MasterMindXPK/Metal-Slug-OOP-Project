@@ -129,7 +129,7 @@ public:
     Pistol() : ProjectileWeapon(50, 1000.f) {
         fireRate = 4.0f;
         damage = 5;
-        setProjectileScale(20.0f, 20.0f);
+        setProjectileScale(0.25f, 0.25);
     }
     void setProjectileTexture(Texture& tex) override {
         projectileTexture = new Texture();
@@ -142,7 +142,7 @@ public:
     MachineGun() : ProjectileWeapon(100, 1500.f) {
         fireRate = 8.0f;
         damage = 5;
-        setProjectileScale(20.0f, 20.0f);
+        setProjectileScale(0.25f,0.25f);
     }
     void setProjectileTexture(Texture& tex) override {
         projectileTexture = new Texture();

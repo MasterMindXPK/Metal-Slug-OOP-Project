@@ -22,7 +22,7 @@ protected:
 
 public:
     PlayerSoldier() {
-        ownPistol = WeaponFactory::createPistol();
+        ownPistol = WeaponFactory::createMachineGun();
         equippedWeapon = ownPistol;
         specialMoveActive = false;
         activeState = true;
@@ -42,7 +42,9 @@ public:
     }
 
     virtual void shoot(Position spawn, float dirX, float dirY) {
-        // Drop dirY at the end! Only pass 3 arguments.
+  
+
+
         equippedWeapon->attack(spawn, dirX, getFireRateMultiplier());
     }
 
@@ -83,7 +85,9 @@ public:
 
     void shoot(Position spawn, float dirX, float dirY) override {
         std::cout << "OVERRIDEN SHOOTING";
-        // Drop dirY at the end! Only pass 3 arguments.
+
+
+
         equippedWeapon->attack(spawn, dirX, getFireRateMultiplier());
         if (specialMoveActive) {
             equippedWeapon->attackDirect(spawn, -dirX);
@@ -131,6 +135,8 @@ public:
         if (specialMoveActive && specialMoveTimer.getElapsedTime().asSeconds() >= 10.0f) {
             specialMoveActive = false;
             fireRateMultiplier = 1.0f;
+
+
         }
     }
     const char* getTexturePath() const override { return "Data/Characters/Fio.png"; }

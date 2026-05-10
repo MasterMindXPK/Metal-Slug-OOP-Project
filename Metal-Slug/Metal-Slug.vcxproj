@@ -136,6 +136,7 @@
     <ClInclude Include="Animation.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DamageableEntity.h" />
+    <ClInclude Include="Enemy.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Spawn.h" />

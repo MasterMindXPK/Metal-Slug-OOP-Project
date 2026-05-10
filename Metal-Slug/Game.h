@@ -134,6 +134,7 @@ public:
                 static_cast<float>(screenW) / bgWidth,
                 static_cast<float>(screenH) / bgHeight);
         }
+
         levelClearText.setFont(menuFont);
         levelClearText.setString("LEVEL CLEAR");
         levelClearText.setCharacterSize(90);
@@ -143,6 +144,12 @@ public:
         if (!survival.loadTextures("Data/blocks/grass_block_side.png",
             "Data/blocks/aqua.jpg", "Data/blocks/stone.png")) return false;
         Menu();
+
+
+        if (!enemyManager.loadTextures()) {
+            std::cout << "ERROR: Failed to load Enemy textures!" << std::endl;
+            return false;
+        }
         return true;
     }
 
@@ -197,7 +204,6 @@ public:
                 Position spawn;
                 spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
                 spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
-                // Pass spawn, DirX (1.0 for right), and DirY (0.0 for straight)
                 currentPlayer->shoot(spawn, 1.0f, 0.0f);
             }
                 
@@ -249,7 +255,7 @@ public:
             spawn.x = Soldier.getPosition().x + Soldier.getWidth() / 2;
             spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
 
-            // DECLARE THESE BEFORE USING
+    
             Vector2i mousePos = Mouse::getPosition(window);
             float aimDirX = (mousePos.x > Soldier.getScreenX(camera)) ? 1.0f : -1.0f;
             float aimDirY = 0.0f;
@@ -264,7 +270,7 @@ public:
         float playerX = Soldier.getPosition().x;
         for (int i = 0; i < maxEnemies; i++) {
             if (activeEnemies[i] != nullptr) {
-                activeEnemies[i]->randomMoveX();
+               
                 activeEnemies[i]->detectCollision(survival);
                 activeEnemies[i]->applyGravity(1.0f);
 
@@ -309,8 +315,9 @@ public:
             soldiers[i]->getActiveWeapon()->drawBullets(window, camera.getCameraOffset());
         }
 
-        for (int i = 0; i < enemyCount; ++i) {
+        for (int i = 0; i < maxEnemies; ++i) {
             if (activeEnemies[i] != nullptr) {
+ 
                 activeEnemies[i]->draw(window);
                 activeEnemies[i]->drawProjectiles(window, camera.getCameraOffset());
             }

@@ -31,7 +31,7 @@ protected:
 	SoldierState state;
 
 public:
-	Soldier() :max_speed(10.0f), acceleration(0.35), terminal_velocity(20), gravity(1.0f), height(0.2f * 438), width(0.2f * 347), jumpStrength(-18), state(SoldierState::Normal) {
+	Soldier() :max_speed(70.0f), acceleration(0.35), terminal_velocity(20), gravity(1.0f), height(0.2f * 438), width(0.2f * 347), jumpStrength(-18), state(SoldierState::Normal) {
 		position.x = 60;
 		position.y = 22;
 		isJumping = false;

@@ -14,7 +14,6 @@ private:
 public:
     Projectile() : velocityX(0), damage(1), active(false), texture(nullptr) {}
 
-    // REVERTED: No more velY or grav
     void activate(const Texture& tex, Position startPos, float velX, int dmg, float scaleX = 1.0f, float scaleY = 1.0f) {
         texture = &tex;
         sprite.setTexture(*texture);
@@ -28,7 +27,6 @@ public:
 
     void update(float dt) {
         if (!active) return;
-        // REVERTED: Only moves on the X axis now
         position.x += velocityX * dt;
         sprite.setPosition(position.x, position.y);
     }

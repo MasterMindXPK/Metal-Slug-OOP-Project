@@ -13,7 +13,13 @@ protected:
 public:
 	Entity() :position{ 0.0f, 0.0f }, isActive(true) {}
 	virtual ~Entity() {}
-
+    Entity(const Entity& other) {
+        position = other.position;
+        isActive = other.isActive;
+        tex = other.tex;          
+        sprite = other.sprite;   
+        sprite.setTexture(tex);  
+    }
 	virtual void draw(RenderWindow& window) = 0;
 	
 	
@@ -25,7 +31,7 @@ public:
     }
     void setPosition(const Position& pos) {
         position = pos;
-        //sprite.setPosition(static_cast<float>(pos.x), static_cast<float>(pos.y));
+
     }
 
     void setSprite(const Texture& tex) {
