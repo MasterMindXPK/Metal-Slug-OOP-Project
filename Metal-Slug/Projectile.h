@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "Entity.h"
 using namespace sf;
-#include "Utility.h"
 
 
 class Projectile: public Entity{
@@ -9,7 +9,6 @@ class Projectile: public Entity{
 protected:
    
     float velocityX;
-    float velocityY;
     int damage;
     
 
@@ -86,7 +85,6 @@ public:
         if (!active) return;
         velocityY += gravity * dt;      
         position.x += velocityX * dt;
-        position.y += velocityY * dt;
         sprite.setPosition(position.x, position.y);
     }
 

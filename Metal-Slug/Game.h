@@ -4,11 +4,11 @@
 #include "Survival.h"
 #include "Soldier.h"
 #include "PlayerSoldier.h"
-#include "Weapon.h"
+
 #include "Projectile.h"
 #include "Enemy.h"
 #include "Spawn.h"
-
+#include "Weapon.h"
 using namespace sf;
 
 class Game {
@@ -17,6 +17,7 @@ private:
     Sprite menuBgSprite;
     enum class GameState { Menu, Survival, Campaign };
     GameState state = GameState::Menu;
+
     Font menuFont;
     Text menuTitle;
     Text menuItems[3];
@@ -36,7 +37,7 @@ private:
     const int clearDurationFrames = 120;
     Text levelClearText;
 
-    static const int players= 4;
+    static const int players = 4;
     int currentSoldierIndex;
     PlayerSoldier* soldiers[players];
     PlayerSoldier* currentPlayer;
@@ -51,19 +52,45 @@ private:
 	Clock clock;
 
     //Enemy Management:
-
-    static const int maxEnemies  = 150;
+    static const int maxEnemies = 150;
     Enemy* activeEnemies[maxEnemies];
     int enemyCount = 0;
     EnemySpawn enemyManager;
-
+    int currentLevel = 1;
 
     const int screenW = 1600;
     const int screenH = 900;
     const float camMinX = 300.0f;
 
+    void checkLevelProgression() {
+        if (survival.hasReachedEnd(Soldier.getPosition().x, 64)) {
+            levelCleared = true;
+            clearFrames = clearDurationFrames;
+            currentLevel++;
+            if (currentLevel > 3) currentLevel = 3;
 
-	//Grenade - Enemy Collision Management
+            for (int i = 0; i < enemyCount; ++i) {
+                if (activeEnemies[i] != nullptr) {
+                    delete activeEnemies[i];
+                    activeEnemies[i] = nullptr;
+                }
+            }
+            enemyCount = 0;
+            survival.generateSurvival();
+            Soldier.setPosition({ 0.f, 0.f });
+            camera.update(0.f, camMinX, screenW - camMinX - Soldier.getWidth());
+
+            enemyManager.SpawnLocationCheck(survival);
+            enemyManager.spawnEnemies(survival, activeEnemies, enemyCount, maxEnemies, currentLevel);
+        }
+
+        if (clearFrames > 0) {
+            clearFrames--;
+            if (clearFrames == 0) levelCleared = false;
+        }
+    }
+
+    //Grenade - Enemy Collision Management
     void processGrenades() {
         for (int i = 0; i < players; i++) {
             GrenadeWeapon* g = soldiers[i]->getGrenade();
@@ -100,7 +127,6 @@ private:
         }
     }
 
-
 public:
     void updateMenuColors() {
         for (int i = 0; i < 3; ++i) {
@@ -118,25 +144,16 @@ public:
 
         const char* labels[3] = { "1. Survival Mode", "2. Campaign Mode", "3. Exit" };
         for (int i = 0; i < 3; ++i) {
-
-
             menuItems[i].setFont(menuFont);
             menuItems[i].setString(labels[i]);
             menuItems[i].setCharacterSize(30);
             menuItems[i].setPosition(600, 350 + i * 50);
-
-
         }
         updateMenuColors();
     }
 
     bool loadAssets() {
-        //Player
-        //if (!bulletTex.loadFromFile("Data/Items/bullet.png")) return false;
-        /*for (int i = 0; i < players; ++i) {
-            soldiers[i]->getActiveWeapon()->setProjectileTexture(bulletTex);
-        }*/
-
+        
 
         //Background
         if (!menuBgTex.loadFromFile("Data/Backgrounds/Intro.jpg")) return false;
@@ -162,13 +179,13 @@ public:
         levelClearText.setCharacterSize(90);
         levelClearText.setFillColor(Color::Yellow);
         levelClearText.setPosition(520, 200);
-        
+
         if (!survival.loadTextures("Data/blocks/grass_block_side.png",
             "Data/blocks/aqua.jpg", "Data/blocks/stone.png")) return false;
-        //pistol.setProjectileTexture(bulletTex);
         Menu();
         return true;
     }
+
     void handleEvents() {
         Event ev;
         while (window.pollEvent(ev)) {
@@ -178,8 +195,6 @@ public:
                 bool upHeld = false;
                 bool downHeld = false;
                 bool enterHeld = false;
-
-
 
                 bool upNow = Keyboard::isKeyPressed(Keyboard::Up);
                 bool downNow = Keyboard::isKeyPressed(Keyboard::Down);
@@ -195,7 +210,7 @@ public:
                 }
                 if (enterNow && !enterHeld) {
                     if (menuIndex == 0) state = GameState::Survival;
-                    else if (menuIndex == 1) state = GameState::Campaign; // do nothing for now
+                    else if (menuIndex == 1) state = GameState::Campaign;
                     else window.close();
                 }
 
@@ -232,6 +247,9 @@ public:
         bool inWater;
         float gravityStrength, speedMultiplier;
         if (state == GameState::Menu) return;
+
+
+
         inWater = survival.isWaterAt(Soldier.getPosition().x + Soldier.getWidth() * 0.5f, Soldier.getPosition().y + Soldier.getHeight() * 0.5f);
         if (inWater) {
             gravityStrength = 1.3;
@@ -241,55 +259,26 @@ public:
             gravityStrength = 1;
             speedMultiplier = 1;
         }
-       
-        
-        if (state == GameState::Menu) return;
-        inWater = survival.isWaterAt(Soldier.getPosition().x + Soldier.getWidth() * 0.5f,  Soldier.getPosition().y + Soldier.getHeight() * 0.5f);
-        
-        if (inWater) {
-            gravityStrength = 1.3;
-            speedMultiplier = 0.65;
-        }
-        else {
-            gravityStrength = 1;
-            speedMultiplier = 1;
-        }
-     
+
         Soldier.applyGravity(gravityStrength);
         Soldier.handleInput(speedMultiplier);
         float nextX = Soldier.getPosition().x + Soldier.getVelocityX();
         float correctedX = survival.horizontalCollision(Soldier.getPosition().x, Soldier.getPosition().y, Soldier.getVelocityX(), Soldier.getWidth(), Soldier.getHeight());
-        
+
         if (correctedX != Soldier.getPosition().x + Soldier.getVelocityX()) Soldier.applyHorizontalCollision(correctedX);
-        
         else Soldier.setPosition({ correctedX, Soldier.getPosition().y });
-        
 
         float nextY = Soldier.getPosition().y + Soldier.getVelocityY();
-        float groundY = survival.verticalCollision( Soldier.getPosition().x, Soldier.getPosition().y, Soldier.getWidth(), Soldier.getHeight(), Soldier.getVelocityY());
+        float groundY = survival.verticalCollision(Soldier.getPosition().x, Soldier.getPosition().y, Soldier.getWidth(), Soldier.getHeight(), Soldier.getVelocityY());
         Soldier.applyVerticalCollision(groundY, nextY);
 
-        int col = static_cast<int>(Soldier.getPosition().x / survival.getCellSize());
-        if (col >= survival.getWidth() - 1) {
-            levelCleared = true;
-            clearFrames = clearDurationFrames;
-
-            survival.generateSurvival();
-            Soldier.setPosition({ 0.f, 0.f }); 
-           
-        }
-        if (clearFrames > 0) {
-            clearFrames--;
-            if (clearFrames == 0) levelCleared = false;
-        }
+        checkLevelProgression();
         camera.update(Soldier.getPosition().x, camMinX,
             screenW - camMinX - Soldier.getWidth());
 
         Soldier.setSprPos(Soldier.getPosition().x - camera.getCameraOffset(),
             Soldier.getPosition().y);
-        /*for (int i = 0; i < NUM_CHARACTERS; ++i) {
-            soldiers[i]->getActiveWeapon()->updateBullets(0.016);
-        }*/
+
         for (int i = 0; i < players; ++i) {
             soldiers[i]->getActiveWeapon()->updateBullets(0.016f, survival, screenW, screenH);
 			soldiers[i]->updateGrenade(0.016f, survival, screenW, screenH);
@@ -322,20 +311,19 @@ public:
             spawn.y = Soldier.getPosition().y + Soldier.getHeight() / 2;
             currentPlayer->shoot(spawn, aimDirX, aimDirY);
         }
-
-        if (!mousePressedNow && mousePressedBefore) {
-            currentPlayer->getActiveWeapon()->stopFiring();  // only on release
+        else {
+            currentPlayer->getActiveWeapon()->stopFiring();
         }
         mousePressedBefore = mousePressedNow;
         
 		//============================Enemy Logic===============================================
+        float dt = 0.016f;
+        float playerX = Soldier.getPosition().x;
         for (int i = 0;i < maxEnemies;i++) {
             if (activeEnemies[i] != nullptr) {
-
                 activeEnemies[i]->randomMoveX();
                 activeEnemies[i]->detectCollision(survival);
-
-                activeEnemies[i]->applyGravity(1.0f); // Apply gravity acceleration first
+                activeEnemies[i]->applyGravity(1.0f);
 
                 float nextY = activeEnemies[i]->getPosition().y + activeEnemies[i]->getVelocityY();
                 float groundY = survival.verticalCollision(
@@ -346,10 +334,10 @@ public:
                     activeEnemies[i]->getVelocityY()
                 );
 
-                // Resolve the collision and set the final Y position
                 activeEnemies[i]->applyVerticalCollision(groundY, nextY);
-                activeEnemies[i]->attack();
-                activeEnemies[i]->attack();
+
+                activeEnemies[i]->attack(dt, playerX);
+
                 activeEnemies[i]->updateProjectiles(0.016f, survival, screenW, screenH);
                 activeEnemies[i]->setSprPos(
                     activeEnemies[i]->getPosition().x - camera.getCameraOffset(),
@@ -362,7 +350,6 @@ public:
     }
 
     void render() {
-       
         if (state == GameState::Menu) {
             window.draw(menuBgSprite);
             window.draw(menuTitle);
@@ -396,15 +383,13 @@ public:
         window.display();
     }
 
-
-    Game(): window(VideoMode(1600, 900), "Metal Slug", Style::Close),
+    Game() : window(VideoMode(1600, 900), "Metal Slug", Style::Close),
         camera(1600, 900),
         survival(14, 350, 64, screenH, screenW),
         currentSoldierIndex(0)
     {
         window.setVerticalSyncEnabled(true);
         window.setFramerateLimit(60);
-
 
         //player
         soldiers[0] = new Marco();
@@ -419,30 +404,25 @@ public:
         for (int i = 0; i < maxEnemies; i++) {
             activeEnemies[i] = nullptr;
         }
-
-
     }
 
     ~Game() {
         for (int i = 0; i < players; ++i) {
             delete soldiers[i];
             soldiers[i] = nullptr;
-
         }
-            for (int i = 0; i < enemyCount; ++i) {
-                if (activeEnemies[i] != nullptr) {
-                    delete activeEnemies[i];
-                    activeEnemies[i] = nullptr;
-                }
+        for (int i = 0; i < enemyCount; ++i) {
+            if (activeEnemies[i] != nullptr) {
+                delete activeEnemies[i];
             }
-        
+        }
     }
 
     void run() {
-        (loadAssets()) ;
+        loadAssets();
         survival.generateSurvival();
         enemyManager.SpawnLocationCheck(survival);
-        enemyManager.spawnEnemies(survival, activeEnemies, enemyCount, maxEnemies);
+        enemyManager.spawnEnemies(survival, activeEnemies, enemyCount, maxEnemies, currentLevel);
 
         while (window.isOpen()) {
             handleEvents();

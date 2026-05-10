@@ -1,10 +1,10 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <iostream>
 using namespace sf;
-#include"Projectile.h"
+#include "Projectile.h"
 
-
-class Weapon : public Entity {
+class Weapon {
 protected:
 	float fireRate;
 	float fireCooldown;
@@ -23,9 +23,7 @@ public:
 
 };
 
-
 class ProjectileWeapon : public Weapon {
-
 protected:
 	StraightProjectile* bullets;
 	Texture ammoTex;
@@ -40,37 +38,25 @@ public:
 	}
 	//void setProjectileTexture(Texture& tex) { projectileTexture = &tex;	sprite.setScale(20.0f, 20.0f);}
 
-	//void updateBullets(float dt) override{
-	//	Weapon::update(dt); //This will update the fire cooldown
-	//	for (int i = 0; i < totalAmmo; i++) bullets[i].update(dt);
-	//}
+    void updateBullets(float dt, Survival& level, int screenW, int screenH) override {
+        Weapon::update(dt);
+        for (int i = 0; i < totalAmmo; i++) {
+            if (!bullets[i].isActive()) continue;
+            bullets[i].update(dt);
 
-	void updateBullets(float dt, Survival& level, int screenW, int screenH) override {
-		Weapon::update(dt);
-		for (int i = 0; i < totalAmmo; i++) {
-			if (!bullets[i].isActive()) continue;
+            Position pos = bullets[i].getPosition();
+            float bw = bullets[i].getWidth();
+            float bh = bullets[i].getHeight();
 
-			bullets[i].update(dt);
-
-			Position pos = bullets[i].getPosition();
-			float bw = bullets[i].getWidth();
-			float bh = bullets[i].getHeight();
-
-			// Out of screen bounds
-			if (pos.x + bw < 0 || pos.x > screenW * 10 ||
-				pos.y < 0 || pos.y + bh > screenH) {
-				bullets[i].deactivate();
-				continue;
-			}
-
-			// Level collision
-			if (level.isSolid(pos.x, pos.y, bw, bh)) {
-				bullets[i].deactivate();
-			}
-		}
-
-
-	}
+            if (pos.x + bw < 0 || pos.x > screenW * 10 || pos.y < 0 || pos.y + bh > screenH) {
+                bullets[i].deactivate();
+                continue;
+            }
+            if (level.isSolid(pos.x, pos.y, bw, bh)) {
+                bullets[i].deactivate();
+            }
+        }
+    }
 
 	void drawBullets(RenderWindow& window, float cameraOffset) override {
 
@@ -102,11 +88,40 @@ public:
 		projectileScaleY = scaleY;
 	}
 
-	~ProjectileWeapon() { delete[] bullets; }
+    ProjectileWeapon(const ProjectileWeapon& other) : Weapon(other) {
+        totalAmmo = other.totalAmmo;
+        projectileSpeed = other.projectileSpeed;
+        projectileScaleX = other.projectileScaleX;
+        projectileScaleY = other.projectileScaleY;
+        projectileTexture = other.projectileTexture;
+
+        bullets = new Projectile[totalAmmo];
+        for (int i = 0; i < totalAmmo; i++) {
+            bullets[i] = other.bullets[i];
+        }
+    }
+
+    ProjectileWeapon& operator=(const ProjectileWeapon& other) {
+        if (this != &other) {
+            Weapon::operator=(other);
+            delete[] bullets;
+            totalAmmo = other.totalAmmo;
+            projectileSpeed = other.projectileSpeed;
+            projectileScaleX = other.projectileScaleX;
+            projectileScaleY = other.projectileScaleY;
+            projectileTexture = other.projectileTexture;
+            bullets = new Projectile[totalAmmo];
+            for (int i = 0; i < totalAmmo; i++) {
+                bullets[i] = other.bullets[i];
+            }
+        }
+        return *this;
+    }
+
+    ~ProjectileWeapon() { delete[] bullets; }
 };
 
 class Pistol : public ProjectileWeapon {
-
 public:
 	Pistol() : ProjectileWeapon(50, 1000.f) {
 		fireRate = 4.0f;
@@ -143,6 +158,7 @@ public:
 
 	void draw(RenderWindow& window) {}
 };
+
 class Flameshot : public Weapon {
 private:
 	Sprite flameSprite;
@@ -175,7 +191,6 @@ public:
 	}
 	void draw(RenderWindow& window) {}
 };
-
 
 class LaserGun : public Weapon {
 private:

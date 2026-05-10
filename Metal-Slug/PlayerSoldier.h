@@ -1,11 +1,12 @@
 #pragma once
-#include"Soldier.h"
-#include "Weapon.h"
+#pragma once
+#include "Soldier.h"
+#include "Survival.h" 
+#include "Weapon.h"  
 #include "Camera.h"
+#include <iostream>
 
-
-
-class PlayerSoldier: public Soldier{
+class PlayerSoldier : public Soldier {
 protected:
 	int grenadeCount;
 	float fireRateMultiplier;
@@ -76,8 +77,6 @@ public:
 };
 
 class Marco : public PlayerSoldier {
-private:
-
 public:
 	Marco(){
 		grenadeCount = 8; //2 less than normal
@@ -111,7 +110,6 @@ public:
 	}
 };
 
-
 class Tarma : public PlayerSoldier {
 public:
 	Tarma(){
@@ -129,7 +127,6 @@ public:
 	const char* getTexturePath() const override { return "Data/Characters/Tarma.png"; }
 };
 
-
 class Eri : public PlayerSoldier {
 public:
 	Eri(){
@@ -146,7 +143,6 @@ public:
 	}
 	const char* getTexturePath() const override { return "Data/Characters/Eri.png"; }
 };
-
 
 class Fio : public PlayerSoldier {
 public:

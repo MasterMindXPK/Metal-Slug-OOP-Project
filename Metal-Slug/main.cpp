@@ -4,9 +4,25 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/Window.hpp>
-#include "Game.h"
-#include "Camera.h"
+
+#include"Utility.h"
+
+#include "Survival.h"
+
+#include"Projectile.h"
+
+#include"Weapon.h"
+
+
+
 #include"Soldier.h"
+#include"Enemy.h"
+
+#include"PlayerSoldier.h"
+
+#include"Spawn.h"
+
+#include"Game.h"
 
 using namespace sf;
 using namespace std;
